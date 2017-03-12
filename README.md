@@ -562,7 +562,7 @@ To work around this issue, add the following `proxies` configuration to your `io
 ```
 
 This will proxy calls to your API if your URL path starts with `/api-proxy`.
-For example, if you call `http://localhost:8100/api-proxy/users` from your application, it will actually call `https://comem-citizen-engagement.herokuapp.com/api/users`.
+For example, if you call `/api-proxy/users` from your application, it will actually call `https://comem-citizen-engagement.herokuapp.com/api/users`.
 
 **You must** terminate `ionic serve` and re-launch it to take this configuration into account.
 
