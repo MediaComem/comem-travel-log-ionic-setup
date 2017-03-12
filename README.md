@@ -1,17 +1,18 @@
-# Citizen Engagement Mobile Application
+# COMEM+ Citizen Engagement Ionic Setup
 
 <a name="top"></a>
 
 This repository contains instructions to build a skeleton application that will serve as a starting point to develop the Citizen Engagement mobile application.
 The completed skeleton app is available [here](https://github.com/MediaComem/comem-citizen-engagement-ionic-starter).
 
+This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [appmob](https://github.com/MediaComem/comem-appmob) taught at [HEIG-VD](http://www.heig-vd.ch).
+
 * [Prerequisites](#pre)
 * [Features](#features)
 
 1. [Design the user interface](#ui)
 2. [Set up the application](#setup)
-  * [Fork this repo and put a blank Ionic app in it](#setup-fork)
-  * [Install application dependencies](#setup-deps)
+  * [Create a blank Ionic app](#setup-fork)
   * [Serve the application locally](#setup-serve)
   * [Rename the main AngularJS module](#setup-rename)
 3. [Set up the navigation structure](#structure)
@@ -37,7 +38,8 @@ The completed skeleton app is available [here](https://github.com/MediaComem/com
 <a name="pre"></a>
 ## Prerequisites
 
-These instructions assume that you have implemented and deployed the Citizen Engagement API as described in the previous [Web Services course](https://github.com/MediaComem/comem-webserv).
+These instructions assume that you have implemented and deployed the Citizen Engagement API as described in the previous [Web Services course](https://github.com/MediaComem/comem-webserv),
+and that you are familiar with the [documentation of the reference API](https://mediacomem.github.io/comem-citizen-engagement-api).
 
 You will need to have [Node.js](https://nodejs.org) installed.
 The latest LTS (Long Term Support) version is recommended (v6.10.0 at the time of writing these instructions).
