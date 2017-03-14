@@ -648,7 +648,7 @@ angular.module('citizen-engagement').controller('LoginCtrl', function(AuthServic
       delay: 750
     });
 
-    // Make the request to retrieve or create the user.
+    // Make the request to authenticate the user.
     $http({
       method: 'POST',
       url: '/api-proxy/auth',
