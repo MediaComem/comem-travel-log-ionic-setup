@@ -690,6 +690,7 @@ You must also update the login state to use it (in `www/js/app.js`):
 .state('login', {
   url: '/login',
   controller: 'LoginCtrl',
+  controllerAs: 'loginCtrl',
   templateUrl: 'templates/login.html'
 })
 ```
@@ -802,7 +803,7 @@ angular.module('citizen-engagement', ['ionic', 'angular-storage'])
 You can now update the `AuthService` in the same file to use persistent storage:
 
 ```js
-angular.module('citizen-engagement').service('AuthService', function(store) {
+angular.module('citizen-engagement').factory('AuthService', function(store) {
 
   var service = {
     authToken: store.get('authToken'),
