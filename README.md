@@ -190,7 +190,7 @@ For example, in `src/pages/create-issue/create-issue.html`:
 Now that the pages are ready, we need to display them.
 
 First, Angular and Ionic need to be aware of your new components.
-You must declare them in 2 places in your main Angular module in `src/app/app.module.ts`:
+You must **declare** them in 2 places in your main Angular module in `src/app/app.module.ts`:
 
 * Add them to the `declarations` array to register the components with Angular.
 * Add them to the `entryComponents` array so that Ionic is able to inject them dynamically (e.g. when switching tabs).
@@ -222,7 +222,7 @@ import { IssueMapPage } from '../pages/issue-map/issue-map';
 export class AppModule {}
 ```
 
-Second, update the home page's component (`src/pages/home/home.ts`) to include the list of tabs we want:
+Second, **update the home page's component** (`src/pages/home/home.ts`) to include the list of tabs we want:
 
 ```js
 import { CreateIssuePage } from '../create-issue/create-issue';
@@ -255,7 +255,7 @@ export class HomePage {
 }
 ```
 
-Third, we will **replace the contents** of the home page's template (`src/pages/home/home.html`) to use Ionic's Tabs component.
+Third, we will **replace the contents of the home page's template** (`src/pages/home/home.html`) to use Ionic's Tabs component.
 
 Angular's `ngFor` directive allows us to iterate over the `tabs` array we declared in the home page's component,
 and to put one `<ion-tab>` tag in the page for each component:
