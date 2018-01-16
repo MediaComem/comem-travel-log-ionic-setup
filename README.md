@@ -262,7 +262,7 @@ and to put one `<ion-tab>` tag in the page for each component:
 
 ```html
 <ion-tabs>
-  <ion-tab *ngFor='let tab of tabs' tabTitle='{{ tab.title }}' tabIcon='{{ tab.icon }}' [root]='tab.component'></ion-tab>
+  <ion-tab *ngFor='let tab of tabs' [tabTitle]='tab.title' [tabIcon]='tab.icon' [root]='tab.component'></ion-tab>
 </ion-tabs>
 ```
 
@@ -274,195 +274,20 @@ You should now be able to navigate between the 3 tabs!
 
 To use the app, a citizen should identify him- or herself.
 You will add a login screen that the user must go through before accessing the other screens.
+Authentication will be performed by the [Citizen Engagement API][citizen-engagement-api].
 
-You will use the API you previously implemented to actually log in.
-If you do not have a running API, you may also use the [reference implementation](https://mediacomem.github.io/comem-citizen-engagement-api/).
-
-The reference implementation authenticates users with a bearer token
+The API requires a bearer token be sent to identify the user when making requests on some resources (e.g. when creating issues).
 This token must be sent in the `Authorization` header for all requests requiring identification.
-
-<a href="#top">Back to top</a>
-
-
-
-### Create the login screen
-
-Let's start by creating a login screen.
-Add a `login.html` template in `www/templates`:
-
-```html
-<ion-view view-title="Citizen Engagement">
-  <ion-content class="padding">
-
-    <!-- A banner. Choose an image and save it as www/img/banner.jpg -->
-    <!--<img src="img/banner.jpg" width="100%" alt="Citizen Engagement" />-->
-
-    <!-- A short welcome message. -->
-    <div class="card">
-      <div class="item item-text-wrap">
-        Welcome to Citizen Engagement!
-        Please log in to use the application.
-      </div>
-    </div>
-
-    <!-- The login form that the citizen must fill. -->
-    <form name="loginForm">
-
-      <!-- Ionic uses lists to group related input elements. -->
-      <div class="list">
-        <label class="item item-input">
-          <!-- Note the required="required" attribute used for validation. -->
-          <input type="text" placeholder="Username" ng-model="loginCtrl.user.name" required />
-        </label>
-        <label class="item item-input">
-          <input type="password" placeholder="Password" ng-model="loginCtrl.user.password" required />
-        </label>
-      </div>
-
-      <!-- Display an error message here, above the submit button, if an error occurred. -->
-      <p ng-if="loginCtrl.error" class="error">{{ loginCtrl.error }}</p>
-
-      <!--
-        The submit button.
-        The "ng-click" directive indicates which scope function to call when the form is submitted.
-        The "ng-disabled" directive is used to disable the button if the form is invalid (i.e. the first name or last name is missing).
-      -->
-      <button class="button button-full button-positive" ng-click="loginCtrl.logIn()" ng-disabled="loginForm.$invalid">Log in</button>
-    </form>
-  </ion-content>
-</ion-view>
-```
-
-This proposed login template has an image banner.
-Don't forget to choose an image and save it as `www/img/banner.jpg`.
-
-Define the state for the login screen in `www/js/app.js`
-
-```js
-.state('login', {
-  url: '/login',
-  templateUrl: 'templates/login.html'
-})
-```
-
-<a href="#top">Back to top</a>
+Once login/logout is implemented, you will also set up an HTTP interceptor to automatically add this header to every request.
 
 
 
-### Create the authentication service
+### Check the documentation of the API's authentication resource
 
-Now that we have our login screen, we must configure the app to redirect the user to it if he hasn't yet logged in.
-To do that, we need a way to tell whether the user has logged in or not.
-This will be our first AngularJS service: the authentication service.
+The Citizen Engagement API provides an [`/auth` resource](https://mediacomem.github.io/comem-citizen-engagement-api/#auth_post)
+on which you can make a POST request to authenticate.
 
-Create a new `www/js/auth.js` file containing this:
-
-```js
-angular.module('citizen-engagement').factory('AuthService', function() {
-
-  var service = {
-    authToken: null,
-
-    setAuthToken: function(token) {
-      service.authToken = token;
-    },
-
-    unsetAuthToken: function() {
-      service.authToken = null;
-    }
-  };
-
-  return service;
-});
-```
-
-This file defines a new service, `AuthService`, which manages the user authentication with the `authToken` property.
-If this property has a value, the user is logged in; otherwise, he isn't.
-
-To use this new file, you must add it to `www/index.html` like this:
-
-```html
-  <head>
-    <!-- ... meta, link, etc ... -->
-
-    <!-- your app's js -->
-    <script src="js/app.js"></script> <!-- The existing module for the whole application. -->
-    <script src="js/auth.js"></script> <!-- Your new module. -->
-  </head>
-```
-
-We will implement the rest of this service later.
-First, let's make sure the app shows the login screen.
-Edit `www/js/app.js` and add this `run` block:
-
-```js
-angular.module('citizen-engagement').run(function(AuthService, $rootScope, $state) {
-
-  // Listen for the $stateChangeStart event of AngularUI Router.
-  // This event indicates that we are transitioning to a new state.
-  // We have the possibility to cancel the transition in the callback function.
-  $rootScope.$on('$stateChangeStart', function(event, toState) {
-
-    // If the user is not logged in and is trying to access another state than "login"...
-    if (!AuthService.authToken && toState.name != 'login') {
-
-      // ... then cancel the transition and go to the "login" state instead.
-      event.preventDefault();
-      $state.go('login');
-    }
-  });
-});
-```
-
-The login screen is ready!
-If you reload your app, you should see that you are automatically redirected to the login page.
-You also can't go to any other screen any more, since we haven't implemented the actual login yet.
-
-<a href="#top">Back to top</a>
-
-
-
-### Set up a proxy (for local development only)
-
-If you are serving your Ionic app locally with `ionic serve`,
-**beware of the [same-origin policy](http://en.wikipedia.org/wiki/Same-origin_policy)!**
-
-In a web application, the browser will only allow remote calls to the same **origin**.
-Your Ionic app is essentially a web page, served at `http://localhost:8100`.
-If your API lives at `https://api.example.com`, you won't be able to call it from your Ionic app because the browser will block the call.
-
-To work around this issue, add the following `proxies` configuration to your `ionic.config.json` file:
-
-```
-{
-  "name": "citizen-engagement",
-  "app_id": "",
-  "proxies": [
-    {
-      "path": "/api-proxy",
-      "proxyUrl": "https://comem-citizen-engagement.herokuapp.com/api"
-    }
-  ]
-}
-```
-
-This will proxy calls to your API if your URL path starts with `/api-proxy`.
-For example, if you call `/api-proxy/users` from your application, it will actually call `https://comem-citizen-engagement.herokuapp.com/api/users`.
-
-**You must** terminate `ionic serve` and re-launch it to take this configuration into account.
-
-<a href="#top">Back to top</a>
-
-
-
-### Log in with the API
-
-You will now integrate with the API!
-
-In the proposed implementation, we will use the `/auth` resource [described in the reference implementation](https://mediacomem.github.io/comem-citizen-engagement-api/#auth_post).
-This action either returns an existing user or creates it if it doesn't exist.
-
-We need to make the following call:
+You need to make a call that looks like this:
 
 ```json
 POST /api/auth HTTP/1.1
@@ -474,7 +299,8 @@ Content-Type: application/json
 }
 ```
 
-The response will contain the token we need for authentication:
+The response will contain the token we need for authentication,
+as well as a representation of the authenticated user:
 
 ```json
 HTTP/1.1 200 OK
@@ -494,132 +320,263 @@ Content-Type: application/json
 }
 ```
 
-You must make this call when the user clicks on the "Log in" button of the login template.
-As you can see in the proposed login template you added earlier, the submit button already has an `ng-click` directive.
-
-```html
-<button class="button button-full button-positive" ng-click="loginCtrl.logIn()" ng-disabled="loginForm.$invalid">Log in</button>
-```
-
-The directive defines what happens when the button is clicked.
-In this case, it calls the `logIn()` function.
-
-To react to view events, we need an AngularJS **controller**.
-In the controller, you will be able to add the `register()` function to the scope.
-
-Let's add it to `www/js/auth.js` after the service:
-
-```js
-angular.module('citizen-engagement').controller('LoginCtrl', function(AuthService, $http, $ionicHistory, $ionicLoading, $scope, $state) {
-  var loginCtrl = this;
-
-  // The $ionicView.beforeEnter event happens every time the screen is displayed.
-  $scope.$on('$ionicView.beforeEnter', function() {
-    // Re-initialize the user object every time the screen is displayed.
-    // The first name and last name will be automatically filled from the form thanks to AngularJS's two-way binding.
-    loginCtrl.user = {};
-  });
-
-  // Add the register function to the scope.
-  loginCtrl.logIn = function() {
-
-    // Forget the previous error (if any).
-    delete loginCtrl.error;
-
-    // Show a loading message if the request takes too long.
-    $ionicLoading.show({
-      template: 'Logging in...',
-      delay: 750
-    });
-
-    // Make the request to authenticate the user.
-    $http({
-      method: 'POST',
-      url: '/api-proxy/auth',
-      data: loginCtrl.user
-    }).then(function(res) {
-
-      // If successful, give the token to the authentication service.
-      AuthService.setAuthToken(res.data.token);
-
-      // Hide the loading message.
-      $ionicLoading.hide();
-
-      // Set the next view as the root of the history.
-      // Otherwise, the next screen will have a "back" arrow pointing back to the login screen.
-      $ionicHistory.nextViewOptions({
-        disableBack: true,
-        historyRoot: true
-      });
-
-      // Go to the issue creation tab.
-      $state.go('tab.newIssue');
-
-    }).catch(function() {
-
-      // If an error occurs, hide the loading message and show an error message.
-      $ionicLoading.hide();
-      loginCtrl.error = 'Could not log in.';
-    });
-  };
-});
-```
-
-Take a moment to read the comments in the controller's code.
-
-Simply defining the controller isn't enough.
-You must also update the login state to use it (in `www/js/app.js`):
-
-```js
-.state('login', {
-  url: '/login',
-  controller: 'LoginCtrl',
-  controllerAs: 'loginCtrl',
-  templateUrl: 'templates/login.html'
-})
-```
-
-If your API works, you should now be able to log in!
+You will need to perform this request and retrieve that information when the user logs in.
 
 <a href="#top">Back to top</a>
 
 
 
-### Log out
+### Create model classes
 
-You should also allow the user to log out.
+Let's create a few classes to use as models when communicating with the API.
+That way we will benefit from TypeScript's typing when accessing model properties.
 
-Let's add another controller to `www/js/auth.js`:
+Create a `src/models/user.ts` file which exports a model representing a user of the API:
 
-```js
-angular.module('citizen-engagement').controller('LogoutCtrl', function(AuthService, $state) {
-  var logoutCtrl = this;
-
-  logoutCtrl.logOut = function() {
-    AuthService.unsetAuthToken();
-    $state.go('login');
-  };
-});
+```ts
+export class User {
+  id: string;
+  href: string;
+  name: string;
+  firstname: string;
+  lastname: string;
+  roles: string[];
+}
 ```
 
-And add the logout button.
-You can add override any screen's navigation buttons using Ionic's `<ion-nav-buttons>` directive.
+Create a `src/models/auth-request.ts` file which exports a model representing a request to the authentication resource:
 
-For example, you can update your issue creation template (`www/templates/newIssue.html`) to look like this:
+```ts
+export class AuthRequest {
+  name: string;
+  password: string;
+}
+```
+
+Create a `src/models/auth-response.ts` file which exports a model representing a successful response from the authentication resource:
+
+```ts
+import { User } from './user';
+
+export class AuthResponse {
+  token: string;
+  user: User;
+}
+```
+
+
+
+### Create an authentication service
+
+Let's generate a reusable, injectable service to manage authentication:
+
+```bash
+$> ionic generate provider Auth
+```
+
+You can replace the contents of the generated `srv/providers/auth/auth.ts` file with the following code:
+
+```ts
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Response } from '@angular/http';
+
+import { AuthRequest } from '../../models/auth-request';
+import { AuthResponse } from '../../models/auth-response';
+import { User } from '../../models/user';
+
+/**
+ * Authentication service for login/logout.
+ */
+@Injectable()
+export class AuthProvider {
+
+  private auth: AuthResponse;
+
+  constructor(private http: HttpClientj {
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.auth;
+  }
+
+  getUser(): User {
+    return this.auth ? this.auth.user : null;
+  }
+
+  getToken(): string {
+    return this.auth ? this.auth.token : null;
+  }
+
+  async logIn(authRequest: AuthRequest): Promise<User> {
+    this.auth = await this.http.post<AuthResponse>('https://comem-citizen-engagement.herokuapp.com/api/auth', authRequest).toPromise();
+    console.log(`User ${this.auth.user.name} logged in`);
+    return this.auth.user;
+  }
+
+  logOut() {
+    this.auth = null;
+    console.log('User logged out');
+  }
+
+}
+```
+
+
+
+### Create the login screen
+
+Generate a login page component:
+
+```bash
+$> ionic generate page --no-module Login
+```
+
+Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/login.html`:
 
 ```html
-<ion-view view-title="New Issue">
-  <ion-nav-buttons side="secondary">
-    <button type="button" ng-controller="LogoutCtrl as logoutCtrl" ng-click="logoutCtrl.logOut()" class="button">Log Out</button>
-  </ion-nav-buttons>
-  <ion-content>
-    <p>Hello! This is the issue creation screen.</p>
-  </ion-content>
-</ion-view>
+<form (submit)="onSubmit($event)">
+  <ion-list>
+
+    <!-- Name input -->
+    <ion-item>
+      <ion-label floating>Name</ion-label>
+      <ion-input type="text" name="name" #nameInput="ngModel" [(ngModel)]="authRequest.name" required></ion-input>
+    </ion-item>
+
+    <!-- Error message displayed if the name is invalid -->
+    <ion-item [hidden]="nameInput.valid || nameInput.pristine" no-lines>
+      <p ion-text color="danger">Name is required.</p>
+    </ion-item>
+
+    <!-- Password input -->
+    <ion-item>
+      <ion-label floating>Password</ion-label>
+      <ion-input type="password" name="password" #passwordInput="ngModel" [(ngModel)]="authRequest.password" required></ion-input>
+    </ion-item>
+
+    <!-- Error message displayed if the password is invalid -->
+    <ion-item [hidden]="passwordInput.valid || passwordInput.pristine" no-lines>
+      <p ion-text color="danger">Password is required.</p>
+    </ion-item>
+
+  </ion-list>
+
+  <div padding>
+
+    <!-- Submit button -->
+    <button type="submit" [disabled]="form.invalid" ion-button block>Log in</button>
+
+    <!-- Error message displayed if the login failed -->
+    <p [hidden]="!loginError" ion-text color="danger">Name or password is invalid.</p>
+
+  </div>
+</form>
 ```
 
-You should now see the logout button in the navigation bar after logging in.
-You may also add the logout button to the other two tabs if you want.
+Update `src/pages/login/login.ts` as follows:
+
+```ts
+import { Component, ViewChild } from '@angular/core';
+import { NgForm } from '@angular/forms';
+import { NavController, NavParams } from 'ionic-angular';
+
+import { AuthRequest } from '../../models/auth-request';
+import { AuthProvider } from '../../providers/auth/auth';
+import { HomePage } from '../home/home';
+
+/**
+ * Login page.
+ *
+ * See https://ionicframework.com/docs/components/#navigation for more info on
+ * Ionic pages and navigation.
+ */
+@Component({
+  templateUrl: 'login.html'
+})
+export class LoginPage {
+
+  /**
+   * This authentication request object will be updated when the user
+   * edits the login form. It will then be sent to the API.
+   */
+  authRequest: AuthRequest;
+
+  /**
+   * If true, it means that the authentication API has return a failed response
+   * (probably because the name or password is incorrect).
+   */
+  loginError: boolean;
+
+  /**
+   * The login form.
+   */
+  @ViewChild(NgForm)
+  form: NgForm;
+
+  constructor(private auth: AuthProvider, private navCtrl: NavController) {
+    this.authRequest = new AuthRequest();
+  }
+
+  /**
+   * Called when the login form is submitted.
+   */
+  onSubmit($event) {
+
+    // Prevent default HTML form behavior.
+    $event.preventDefault();
+
+    // Do not do anything if the form is invalid.
+    if (this.form.invalid) {
+      return;
+    }
+
+    // Hide any previous login error.
+    this.loginError = false;
+
+    // Perform the authentication request to the API.
+    this.auth.logIn(this.authRequest).subscribe(user => {
+      this.navCtrl.setRoot(HomePage);
+    }, err => {
+      this.loginError = true;
+      console.warn(`Authentication failed: ${err.message}`);
+    });
+  }
+}
+```
+
+<a href="#top">Back to top</a>
+
+
+
+### Use the authentication service to protect access to the home page
+
+Add the following imports to `src/app/app.component.ts`:
+
+```ts
+import { AuthProvider } from '../providers/auth/auth';
+import { LoginPage } from '../pages/login/login';
+```
+
+Update the component's constructor as follows:
+
+```ts
+constructor(private auth: AuthProvider, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen) {
+
+  // Direct the user to the correct page depending on whether he or she is logged in.
+  if (this.auth.isAuthenticated()) {
+    this.rootPage = HomePage;
+  } else {
+    this.rootPage = LoginPage;
+  }
+
+  // ...
+}
+```
+
+The login screen is ready!
+If you reload your app, you should see that you are automatically redirected to the login page.
+You also can't go to any other screen any more, since we haven't implemented the actual login yet.
 
 <a href="#top">Back to top</a>
 
@@ -632,76 +589,96 @@ Every time the app is reloaded, you lose all data so you have to log back in.
 This is particularly annoying for local development since the browser is automatically refreshed every time you change the code.
 
 You need to use more persistent storage for the security credentials, i.e. the authentication token.
-Since an Ionic app is a web app, the simplest is to use [Web Storage](http://en.wikipedia.org/wiki/Web_storage),
-or more specifically [Local Storage](http://diveintohtml5.info/storage.html).
+Ionic provides a [storage module](https://ionicframework.com/docs/storage/) which will automatically select an appropriate storage method for your platform.
+It will use [SQLite](https://sqlite.org) on phones when available; for web platforms it will use [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), [WebSQL](https://www.w3.org/TR/webdatabase/) or [Local Storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
 
-Starting with HTML 5, you have access to the `localStorage` variable from your Javascript code.
-You may store any key/value pair in local storage.
-It will persist even after you navigate away to another page or close the page.
+To use the Ionic storage module, you must import it into your application's module in `src/app/app.module.ts`:
 
-```js
-localStorage.foo = "bar";
-console.log(localStorage.foo); // => "bar"
+```ts
+// Other imports...
+import { IonicStorageModule } from '@ionic/storage';
+
+@NgModule({
+  // ...
+  imports: [
+    // Other modules...
+    IonicStorageModule.forRoot()
+  ],
+  // ...
+})
+export class AppModule {}
 ```
 
-However, you **should not** use it directly like this in an AngularJS application; that is not the Angular way.
-In an Angular application, you should always wrap such functionality in a service.
-This encourages each service to do only one thing and to do it well.
-It also makes it easier to unit test the service.
+You also need to inject it into the constructor of `AuthProvider` in `src/providers/auth/auth.ts`:
 
-Instead of writing a service yourself, you should always check if someone has already done it for you.
-In this case, we propose to use the [auth0/angular-storage](https://github.com/auth0/angular-storage) library which is a nice AngularJS wrapper around the native local storage functionality.
-
-As shown in their documentation, it can be installed with Bower.
-Since your Ionic app already uses Bower by default, it's trivial to add the Bower dependency:
-
-```bash
-$> bower install --save a0-angular-storage
+```ts
+constructor(private http: HttpClient, private storage: Storage)
 ```
 
-If you look in `www/lib`, you should see a new `a0-angular-storage` directory.
+You can now update the `logIn` method to persist the API's authentication response with `this.storage.set`.
+Note that `set` is asynchronous and returns a promise, so you should wait for it to finish before returning the logged user.
 
-As with all Javascript files, you must add it to `www/index.html` to use it.
-You should add it next to the existing Ionic script tag:
-
-```html
-  <head>
-    <!-- ... meta, link, etc ... -->
-
-    <!-- ionic/angularjs js -->
-    <script src="lib/ionic/js/ionic.bundle.js"></script> <!-- The existing Ionic dependency. -->
-    <script src="lib/a0-angular-storage/dist/angular-storage.js"></script> <!-- The new dependency. -->
-
-    <!-- ... more scripts ... -->
-  </head>
+```ts
+async logIn(authRequest: AuthRequest): Promise<User> {
+  this.auth = await this.http.post<AuthResponse>('https://comem-citizen-engagement.herokuapp.com/api/auth', authRequest).toPromise();
+  console.log(`User ${this.auth.user.name} logged in`);
+  await this.storage.set('auth', this.auth);
+  return this.auth.user;
+}
 ```
 
-And as with all AngularJS modules, you must add it as a dependency in `www/app.js`:
+When testing in the browser, you should already see the object being stored in IndexedDB (the default storage if using Chrome).
 
-```js
-angular.module('citizen-engagement', ['ionic', 'angular-storage'])
+You must now load it when the app starts.
+You can do that in the constructor of `AuthProvider`.
+Since `get` returns a promise, you can only use the result in a `.then` asynchronous callback:
+
+```ts
+this.storage.get('auth').then(auth => {
+  this.auth = auth;
+});
 ```
 
-You can now update the `AuthService` in the same file to use persistent storage:
+However, simply doing this in the constructor of `AuthProvider` will not work.
+Why? Because of the code in you main component in `src/app/app.component.ts`:
 
-```js
-angular.module('citizen-engagement').factory('AuthService', function(store) {
+```ts
+if (this.auth.isAuthenticated()) {
+  this.rootPage = HomePage;
+} else {
+  this.rootPage = LoginPage;
+}
+```
 
-  var service = {
-    authToken: store.get('authToken'),
+This code checks whether the user is authenticated immediately when the app starts.
+However, at that time, the promise returned by `this.storage.get('auth')` has not yet been resolved
+(since promises are always asynchronous).
 
-    setAuthToken: function(token) {
-      service.authToken = token;
-      store.set('authToken', token);
-    },
+One way to solve the problem is to store the "initialization" promise in `AuthProvider` and provide a method to know when it is resolved:
 
-    unsetAuthToken: function() {
-      service.authToken = null;
-      store.remove('authToken');
-    }
-  };
+```ts
+private initializationPromise: Promise<void>;
 
-  return service;
+constructor(private http: HttpClient, private storage: Storage) {
+  this.initializationPromise = this.storage.get('auth').then(auth => {
+    this.auth = auth;
+  });
+}
+
+waitForInitialization(): Promise<void> {
+  return this.initializationPromise;
+}
+```
+
+That way, you can wait for initialization to be complete in the main component in `src/app/app.component.ts`:
+
+```ts
+this.auth.waitForInitialization().then(() => {
+  if (this.auth.isAuthenticated()) {
+    this.rootPage = HomePage;
+  } else {
+    this.rootPage = LoginPage;
+  }
 });
 ```
 
@@ -711,70 +688,193 @@ Your app should now remember user credentials even when you reload it!
 
 
 
+### Log out
+
+You should also allow the user to log out.
+As an example, you will display a logout button in the issue creation screen.
+
+Add an `<ion-buttons>` tag with a logout button in `src/pages/create-issue/create-issue.html`:
+
+```html
+<ion-navbar>
+  <ion-title>CreateIssue</ion-title>
+
+  <!-- Logout button -->
+  <ion-buttons end>
+    <button ion-button icon-only (click)="logOut()">
+      <ion-icon name="log-out"></ion-icon>
+    </button>
+  </ion-buttons>
+</ion-navbar>
+```
+
+Let's assume that when logging out, we want the user redirected to the login page,
+and we want the navigation stack to be cleared (so that pressing the back button doesn't bring the user back to a protected screen).
+
+To do that, you will need:
+
+* To inject the Ionic application (`App` from the `ionic-angular` package),
+  which will allow you to set the root page and thereby clear the navigation stack.
+* To add a `logOut` method to the `CreateIssuePage` component,
+  since it's what we call in its HTML template above.
+* To inject `AuthProvider` and use its `logOut` method.
+
+After doing all that, your `CreateIssuePage` component should look something like this:
+
+```ts
+import { Component } from '@angular/core';
+import { App, NavController, NavParams } from 'ionic-angular';
+
+import { AuthProvider } from '../../providers/auth/auth';
+import { LoginPage } from '../login/login';
+
+@Component({
+  templateUrl: 'create-issue.html'
+})
+export class CreateIssuePage {
+
+  constructor(private app: App, private auth: AuthProvider, public navCtrl: NavController, public navParams: NavParams) {
+  }
+
+  logOut() {
+    this.auth.logOut().then(() => {
+      this.app.getRootNavs()[0].setRoot(LoginPage);
+    });
+  }
+
+}
+```
+
+You should now see the logout button in the navigation bar after logging in.
+
+Later, you might want to encapsulate it into a reusable component to include in other screens.
+
+<a href="#top">Back to top</a>
+
+
+
 ### Configuring an HTTP interceptor
 
-Now that you have login and logout functionality, and an authentication service that can give you an authentication token, you can authenticate for other API calls.
-Taking an example from the reference implementation, you could [retrieve the list of issues](https://mediacomem.github.io/comem-citizen-engagement-api/#issues_get).
-The documentation states that we must send a bearer token in the `Authorization` header, like this:
+Now that you have login and logout functionality, and an authentication service that stores an authentication token, you can authenticate for other API calls.
+
+Looking at the API documentation, at some point you will need to [create an issue](https://mediacomem.github.io/comem-citizen-engagement-api/#issues_post).
+The documentation states that you must send a bearer token in the `Authorization` header, like this:
 
 ```
-GET /api/issues HTTP/1.1
+POST /api/issues HTTP/1.1
 Authorization: Bearer 0a98wumv
+Content-Type: application/json
+
+{"some":"json"}
 ```
 
 With Angular, you would make this call like this:
 
 ```js
-angular.module('citizen-engagement').controller('AnyCtrl', function(AuthService, $http) {
-  $http({
-    url: '/api-proxy/issues',
-    headers: {
-      Authorization: 'Bearer ' + AuthService.authToken
-    }
-  }).then(function(res) {
-    // ...
-  });
-})
+this.http.post('https://comem-citizen-engagement.herokuapp.com/api/auth', issue, {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
 ```
 
 But it's a bit annoying to have to specify this header for every request.
-After all, we know that we need it for most, if not all calls.
+After all, we know that we need it for many calls.
 
-[**Interceptors**](http://www.webdeveasy.com/interceptors-in-angularjs-and-useful-examples/) are Angular services that can be registered with the `$http` service to automatically modify all requests (or responses).
-This solves our problem: we want to register an interceptor that will automatically add the `X-User-Id` header to all requests if the user is logged in.
+[Interceptors](https://medium.com/@ryanchenkie_40935/angular-authentication-using-the-http-client-and-http-interceptors-2f9d1540eb8)
+are Angular services that can be registered with the HTTP client to automatically react to requests (or responses).
+This solves our problem: we want to register an interceptor that will automatically add the `Authorization` header to all requests if the user is logged in.
 
-First, let's create the interceptor service.
-Since it's authentication-related, let's add it to `www/js/auth.js`:
+To demonstrate that it works, start by adding a call to list issues in the `IssueListPage` component in `src/pages/issue-list/issue-list.ts`:
 
-```js
-angular.module('citizen-engagement').factory('AuthInterceptor', function(AuthService) {
-  return {
+```ts
+// Other imports...
+import { HttpClient } from '@angular/common/http';
 
-    // The request function will be called before all requests.
-    // In it, you can modify the request configuration object.
-    request: function(config) {
+@Component({
+  templateUrl: 'issue-list.html'
+})
+export class IssueListPage {
 
-      // If the user is logged in, add the X-User-Id header.
-      if (AuthService.authToken) {
-        config.headers.Authorization = 'Bearer ' + AuthService.authToken;
-      }
+  constructor(public http: HttpClient, public navCtrl: NavController, public navParams: NavParams) {
+  }
 
-      return config;
+  ionViewDidLoad() {
+    this.http.get('https://comem-citizen-engagement.herokuapp.com/api/issues').subscribe(issues => {
+      console.log(`Issues loaded`);
+    });
+  }
+
+}
+```
+
+If you display the issue list page and check network requests in Chrome's developer tools,
+you will see that there is no `Authorization` header sent even when the user is logged in.
+
+Now you can generate the interceptor service:
+
+```bash
+$> ionic generate provider AuthInterceptor
+```
+
+Put the following contents in the generated `src/providers/auth-interceptor/auth-interceptor.ts` file:
+
+```ts
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+import { Injectable, Injector } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+
+import { AuthProvider } from '../auth/auth';
+
+@Injectable()
+export class AuthInterceptorProvider implements HttpInterceptor {
+
+  constructor(private injector: Injector) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+    // Retrieve AuthProvider at runtime from the injector.
+    // (Otherwise there would be a circular dependency: AuthInterceptorProvider -> AuthProvider -> HttpClient -> AuthInterceptorProvider).
+    const auth = this.injector.get(AuthProvider);
+
+    // Get the bearer token (if any).
+    const token = auth.getToken();
+
+    // Add it to the request if it doesn't already have an Authorization header.
+    if (token && !req.headers.has('Authorization')) {
+      req = req.clone({
+        headers: req.headers.set('Authorization', `Bearer ${token}`)
+      });
     }
-  };
-});
+
+    // Perform the request.
+    return next.handle(req);
+  }
+
+}
 ```
 
-Now you simply need to register the interceptor with the provider of the `$http` service.
-In the same file, add:
+Now you simply need to register the interceptor in your application module.
+In `src/app/app.module.ts`, add:
 
-```js
-angular.module('citizen-engagement').config(function($httpProvider) {
-  $httpProvider.interceptors.push('AuthInterceptor');
-});
+```ts
+// Other imports...
+import { AuthInterceptorProvider } from '../providers/auth-interceptor/auth-interceptor';
+
+@NgModule({
+  // ...
+  providers: [
+    // Other providers...
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorProvider, multi: true }
+  ]
+})
+export class AppModule {}
 ```
 
-Now all your API calls will have this header when the user is logged in.
+The `multi: true` option is necessary because you can register multiple interceptors if you want
+(read more about [multi providers](https://blog.thoughtram.io/angular2/2015/11/23/multi-providers-in-angular-2.html)).
+
+Now all your API calls will have the `Authorization` header when the user is logged in.
 
 <a href="#top">Back to top</a>
 
@@ -1048,5 +1148,6 @@ Reference:
 
 
 [angular-component]: https://angular.io/guide/architecture#components
+[citizen-engagement-api]: https://comem-citizen-engagement.herokuapp.com/api
 [ionic-tabs]: https://ionicframework.com/docs/components/#tabs
 [sass]: http://sass-lang.com
