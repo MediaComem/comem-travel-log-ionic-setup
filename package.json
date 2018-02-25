@@ -1,0 +1,22 @@
+{
+  "name": "comem-citizen-engagement-ionic-setup",
+  "version": "1.0.0",
+  "description": "COMEM+ Citizen Engagement Ionic Setup",
+  "private": true,
+  "scripts": {
+    "doctoc": "doctoc --notitle --github README.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MediaComem/comem-citizen-engagement-ionic-setup.git"
+  },
+  "author": "Simon Oulevay",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MediaComem/comem-citizen-engagement-ionic-setup/issues"
+  },
+  "homepage": "https://github.com/MediaComem/comem-citizen-engagement-ionic-setup#readme",
+  "dependencies": {
+    "doctoc": "^1.3.1"
+  }
+}
