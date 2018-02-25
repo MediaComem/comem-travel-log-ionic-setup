@@ -537,7 +537,8 @@ Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/l
     <!-- Name input -->
     <ion-item>
       <ion-label floating>Name</ion-label>
-      <ion-input type='text' name='name' #nameInput='ngModel' [(ngModel)]='authRequest.name' required></ion-input>
+      <ion-input type='text' name='name'
+                 #nameInput='ngModel' [(ngModel)]='authRequest.name' required></ion-input>
     </ion-item>
 
     <!-- Error message displayed if the name is invalid -->
@@ -548,7 +549,8 @@ Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/l
     <!-- Password input -->
     <ion-item>
       <ion-label floating>Password</ion-label>
-      <ion-input type='password' name='password' #passwordInput='ngModel' [(ngModel)]='authRequest.password' required></ion-input>
+      <ion-input type='password' name='password'
+                 #passwordInput='ngModel' [(ngModel)]='authRequest.password' required></ion-input>
     </ion-item>
 
     <!-- Error message displayed if the password is invalid -->
