@@ -2,7 +2,7 @@
 
 <a name="top"></a>
 
-This repository contains instructions to build a skeleton application that will serve as a starting point to develop the Citizen Engagement mobile application.
+This repository contains instructions to build a skeleton application that can serve as a starting point to develop the Citizen Engagement mobile application.
 The completed skeleton app is available [here](https://github.com/MediaComem/comem-citizen-engagement-ionic-starter).
 
 This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Applications course](https://github.com/MediaComem/comem-appmob) taught at [HEIG-VD](http://www.heig-vd.ch).
@@ -19,7 +19,7 @@ These instructions assume that you are using the Citizen Engagement API describe
 and that you are familiar with the [documentation of the reference API](https://mediacomem.github.io/comem-citizen-engagement-api).
 
 You will need to have [Node.js](https://nodejs.org) installed.
-The latest LTS (Long Term Support) version is recommended (v8.9.3 at the time of writing these instructions).
+The latest LTS (Long Term Support) version is recommended (v8.9.4 at the time of writing these instructions).
 
 <a href="#top">Back to top</a>
 
@@ -52,7 +52,7 @@ The following sections describe a proposed UI mockup of the app and steps to set
 
 
 
-## 1. Design the user interface
+## Design the user interface
 
 Before diving into the code, you should always take a moment to design the user interface of your app.
 This doesn't have to be a final design, but it should at least be a sketch of what you want.
@@ -73,7 +73,7 @@ Now that we know what we want, we can start setting up the app!
 
 
 
-## 2. Set up the application
+## Set up the application
 
 
 
@@ -127,7 +127,7 @@ You should see something like this:
 
 
 
-## 3. Set up the navigation structure
+## Set up the navigation structure
 
 As defined in our UI design, we want the following 4 screens:
 
@@ -196,6 +196,8 @@ You must **declare** them in 2 places in your main Angular module in `src/app/ap
 * Add them to the `entryComponents` array so that Ionic is able to inject them dynamically (e.g. when switching tabs).
 
 ```js
+// Other imports...
+// TODO: import the new components.
 import { CreateIssuePage } from '../pages/create-issue/create-issue';
 import { IssueListPage } from '../pages/issue-list/issue-list';
 import { IssueMapPage } from '../pages/issue-map/issue-map';
@@ -204,7 +206,7 @@ import { IssueMapPage } from '../pages/issue-map/issue-map';
   declarations: [
     MyApp,
     HomePage,
-    CreateIssuePage,
+    CreateIssuePage, // TODO: add the components to "declarations".
     IssueListPage,
     IssueMapPage
   ],
@@ -213,7 +215,7 @@ import { IssueMapPage } from '../pages/issue-map/issue-map';
   entryComponents: [
     MyApp,
     HomePage,
-    CreateIssuePage,
+    CreateIssuePage, // TODO: add the components to "entryComponents".
     IssueListPage,
     IssueMapPage
   ],
@@ -225,9 +227,18 @@ export class AppModule {}
 Second, **update the home page's component** (`src/pages/home/home.ts`) to include the list of tabs we want:
 
 ```js
+// Other imports...
+// TODO: import the new components.
 import { CreateIssuePage } from '../create-issue/create-issue';
 import { IssueMapPage } from '../issue-map/issue-map';
 import { IssueListPage } from '../issue-list/issue-list';
+
+// TODO: add an interface to represent a tab.
+export interface HomePageTab {
+  title: string;
+  icon: string;
+  component: Function;
+}
 
 @Component({
   selector: 'page-home',
@@ -235,16 +246,11 @@ import { IssueListPage } from '../issue-list/issue-list';
 })
 export class HomePage {
 
-  /**
-   * Application tabs.
-   *
-   * This is a list of objects representing tabs.
-   * Each tab has a `title` and `icon` to customize the tab,
-   * and the `component` property to determine which page to display.
-   */
-  tabs: any[];
+  // TODO: declare a list of tabs to the component.
+  tabs: HomePageTab[];
 
   constructor(public navCtrl: NavController) {
+    // TODO: define some tabs.
     this.tabs = [
       { title: 'New Issue', icon: 'add', component: CreateIssuePage },
       { title: 'Issue Map', icon: 'map', component: IssueMapPage },
@@ -255,14 +261,16 @@ export class HomePage {
 }
 ```
 
-Third, we will **replace the contents of the home page's template** (`src/pages/home/home.html`) to use Ionic's Tabs component.
+Third, we will **replace the entire contents of the home page's template** (`src/pages/home/home.html`) to use Ionic's [Tabs component][ionic-tabs].
 
 Angular's `ngFor` directive allows us to iterate over the `tabs` array we declared in the home page's component,
 and to put one `<ion-tab>` tag in the page for each component:
 
 ```html
 <ion-tabs>
-  <ion-tab *ngFor='let tab of tabs' [tabTitle]='tab.title' [tabIcon]='tab.icon' [root]='tab.component'></ion-tab>
+  <ion-tab *ngFor='let tab of tabs'
+           [tabTitle]='tab.title' [tabIcon]='tab.icon' [root]='tab.component'>
+  </ion-tab>
 </ion-tabs>
 ```
 
@@ -270,7 +278,7 @@ You should now be able to navigate between the 3 tabs!
 
 
 
-## 4. Set up security
+## Set up security
 
 To use the app, a citizen should identify him- or herself.
 You will add a login screen that the user must go through before accessing the other screens.
@@ -374,12 +382,36 @@ Let's generate a reusable, injectable service to manage authentication:
 $> ionic generate provider Auth
 ```
 
+Register the new provider in the module's `providers` array in `src/app/app.module.ts`:
+
+```ts
+// Other imports...
+// TODO: import the new provider.
+import { AuthProvider } from '../providers/auth/auth';
+
+@NgModule({
+  declarations: [ /* ... */ ],
+  imports: [ /* ... */ ],
+  bootstrap: [ /* ... */ ],
+  entryComponents: [ /* ... */],
+  providers: [
+    // ...
+    // TODO: register the new provider.
+    AuthProvider
+  ]
+})
+export class AppModule {}
+```
+
 You can replace the contents of the generated `srv/providers/auth/auth.ts` file with the following code:
 
 ```ts
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
+import { Storage } from '@ionic/storage';
+import { Observable, ReplaySubject } from 'rxjs/Rx';
+import { map } from 'rxjs/operators';
 
 import { AuthRequest } from '../../models/auth-request';
 import { AuthResponse } from '../../models/auth-response';
@@ -391,31 +423,40 @@ import { User } from '../../models/user';
 @Injectable()
 export class AuthProvider {
 
-  private auth: AuthResponse;
+  private auth$: Observable<AuthResponse>;
+  private authSource: ReplaySubject<AuthResponse>;
 
-  constructor(private http: HttpClientj {
+  constructor(private http: HttpClient, private storage: Storage) {
+    this.authSource = new ReplaySubject(1);
+    this.auth$ = this.authSource.asObservable();
   }
 
-  isAuthenticated(): boolean {
-    return !!this.auth;
+  isAuthenticated(): Observable<boolean> {
+    return this.auth$.pipe(map(auth => !!auth));
   }
 
-  getUser(): User {
-    return this.auth ? this.auth.user : null;
+  getUser(): Observable<User> {
+    return this.auth$.pipe(map(auth => auth ? auth.user : undefined));
   }
 
-  getToken(): string {
-    return this.auth ? this.auth.token : null;
+  getToken(): Observable<string> {
+    return this.auth$.pipe(map(auth => auth ? auth.token : undefined));
   }
 
-  async logIn(authRequest: AuthRequest): Promise<User> {
-    this.auth = await this.http.post<AuthResponse>('https://comem-citizen-engagement.herokuapp.com/api/auth', authRequest).toPromise();
-    console.log(`User ${this.auth.user.name} logged in`);
-    return this.auth.user;
+  logIn(authRequest: AuthRequest): Observable<User> {
+
+    const authUrl = 'https://comem-citizen-engagement.herokuapp.com/api/auth';
+    return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
+      map(auth => {
+        this.authSource.next(auth);
+        console.log(`User ${auth.user.name} logged in`);
+        return auth.user;
+      })
+    );
   }
 
   logOut() {
-    this.auth = null;
+    this.authSource.next(null);
     console.log('User logged out');
   }
 
@@ -432,32 +473,57 @@ Generate a login page component:
 $> ionic generate page --no-module Login
 ```
 
+Add this new component to the module's `declarations` and `entryComponents` arrays in `src/app/app.module.ts`:
+
+```ts
+// Other imports...
+// TODO: import the new component.
+import { LoginPage } from '../pages/login/login';
+
+@NgModule({
+  declarations: [
+    // ...
+    // TODO: add the component to the declarations.
+    LoginPage
+  ],
+  imports: [ /* ... */ ],
+  bootstrap: [ /* ... */ ],
+  entryComponents: [
+    // ...
+    // TODO: add the component to the entry components.
+    LoginPage
+  ],
+  providers: [ /* ... */ ]
+})
+export class AppModule {}
+```
+
 Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/login.html`:
 
 ```html
-<form (submit)="onSubmit($event)">
+<form (submit)='onSubmit($event)'>
   <ion-list>
 
     <!-- Name input -->
     <ion-item>
       <ion-label floating>Name</ion-label>
-      <ion-input type="text" name="name" #nameInput="ngModel" [(ngModel)]="authRequest.name" required></ion-input>
+      <ion-input type='text' name='name' #nameInput='ngModel' [(ngModel)]='authRequest.name' required></ion-input>
     </ion-item>
 
     <!-- Error message displayed if the name is invalid -->
-    <ion-item [hidden]="nameInput.valid || nameInput.pristine" no-lines>
-      <p ion-text color="danger">Name is required.</p>
+    <ion-item *ngIf='nameInput.invalid && nameInput.dirty' no-lines>
+      <p ion-text color='danger'>Name is required.</p>
     </ion-item>
 
     <!-- Password input -->
     <ion-item>
       <ion-label floating>Password</ion-label>
-      <ion-input type="password" name="password" #passwordInput="ngModel" [(ngModel)]="authRequest.password" required></ion-input>
+      <ion-input type='password' name='password' #passwordInput='ngModel' [(ngModel)]='authRequest.password' required></ion-input>
     </ion-item>
 
     <!-- Error message displayed if the password is invalid -->
-    <ion-item [hidden]="passwordInput.valid || passwordInput.pristine" no-lines>
-      <p ion-text color="danger">Password is required.</p>
+    <ion-item *ngIf='passwordInput.invalid && passwordInput.dirty' no-lines>
+      <p ion-text color='danger'>Password is required.</p>
     </ion-item>
 
   </ion-list>
@@ -465,10 +531,10 @@ Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/l
   <div padding>
 
     <!-- Submit button -->
-    <button type="submit" [disabled]="form.invalid" ion-button block>Log in</button>
+    <button type='submit' [disabled]='form.invalid' ion-button block>Log in</button>
 
     <!-- Error message displayed if the login failed -->
-    <p [hidden]="!loginError" ion-text color="danger">Name or password is invalid.</p>
+    <p *ngIf='loginError' ion-text color='danger'>Name or password is invalid.</p>
 
   </div>
 </form>
@@ -535,9 +601,7 @@ export class LoginPage {
     this.loginError = false;
 
     // Perform the authentication request to the API.
-    this.auth.logIn(this.authRequest).subscribe(user => {
-      this.navCtrl.setRoot(HomePage);
-    }, err => {
+    this.auth.logIn(this.authRequest).subscribe(undefined, err => {
       this.loginError = true;
       console.warn(`Authentication failed: ${err.message}`);
     });
@@ -554,21 +618,40 @@ export class LoginPage {
 Add the following imports to `src/app/app.component.ts`:
 
 ```ts
-import { AuthProvider } from '../providers/auth/auth';
 import { LoginPage } from '../pages/login/login';
+import { AuthProvider } from '../providers/auth/auth';
+```
+
+Make sure that it doesn't have a default home page any more:
+
+```ts
+// ...
+export class MyApp {
+  rootPage: any;
+  // ...
+}
 ```
 
 Update the component's constructor as follows:
 
 ```ts
-constructor(private auth: AuthProvider, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen) {
+constructor(
+  // TODO: inject the authentication provider.
+  private auth: AuthProvider,
+  platform: Platform,
+  statusBar: StatusBar,
+  splashScreen: SplashScreen
+) {
 
+  // TODO: redirect the user to the login page if not authenticated.
   // Direct the user to the correct page depending on whether he or she is logged in.
-  if (this.auth.isAuthenticated()) {
-    this.rootPage = HomePage;
-  } else {
-    this.rootPage = LoginPage;
-  }
+  this.auth.isAuthenticated().subscribe(authenticated => {
+    if (authenticated) {
+      this.rootPage = HomePage;
+    } else {
+      this.rootPage = LoginPage;
+    }
+  });
 
   // ...
 }
@@ -584,7 +667,7 @@ You also can't go to any other screen any more, since we haven't implemented the
 
 ### Storing the authentication credentials
 
-Now you can log in and log out, but there's a little problem.
+Now you can log in, but there's a little problem.
 Every time the app is reloaded, you lose all data so you have to log back in.
 This is particularly annoying for local development since the browser is automatically refreshed every time you change the code.
 
@@ -596,12 +679,14 @@ To use the Ionic storage module, you must import it into your application's modu
 
 ```ts
 // Other imports...
+// TODO: import the ionic storage module.
 import { IonicStorageModule } from '@ionic/storage';
 
 @NgModule({
   // ...
   imports: [
-    // Other modules...
+    // ...
+    // TODO: import the ionic storage module into the app's module.
     IonicStorageModule.forRoot()
   ],
   // ...
@@ -609,21 +694,51 @@ import { IonicStorageModule } from '@ionic/storage';
 export class AppModule {}
 ```
 
-You also need to inject it into the constructor of `AuthProvider` in `src/providers/auth/auth.ts`:
+Now you can import the `Storage` provider in `AuthProvider` in `src/providers/auth/auth.ts`:
+
+```ts
+// Other imports...
+// TODO: import RxJS's delayWhen operator and Ionic's storage provider.
+import { delayWhen, map } from 'rxjs/operators';
+import { Storage } from '@ionic/storage';
+```
+
+You also need to inject it into the constructor:
 
 ```ts
 constructor(private http: HttpClient, private storage: Storage)
 ```
 
-You can now update the `logIn` method to persist the API's authentication response with `this.storage.set`.
-Note that `set` is asynchronous and returns a promise, so you should wait for it to finish before returning the logged user.
+Add a method to persist the authentication information using the storage module:
 
 ```ts
-async logIn(authRequest: AuthRequest): Promise<User> {
-  this.auth = await this.http.post<AuthResponse>('https://comem-citizen-engagement.herokuapp.com/api/auth', authRequest).toPromise();
-  console.log(`User ${this.auth.user.name} logged in`);
-  await this.storage.set('auth', this.auth);
-  return this.auth.user;
+private saveAuth(auth: AuthResponse): Observable<void> {
+  return Observable.fromPromise(this.storage.set('auth', auth));
+}
+```
+
+The storage module returns Promises, but we'll be plugging this new function into `logIn()` which uses Observables,
+so we convert the Promise to an Observable before returning it.
+
+You can now update the `logIn()` method to persist the API's authentication response with the new `saveAuth()` method.
+To do that, use RxJS's [`delayWhen`][rxjs-delay-when] operator, which allows us to delay an Observable stream until another Observable emits
+(in this case, the one that saves the authentication response):
+
+```ts
+logIn(authRequest: AuthRequest): Observable<User> {
+
+  const authUrl = 'https://comem-citizen-engagement.herokuapp.com/api/auth';
+  return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
+    // TODO: delay the observable stream while persisting the authentication response.
+    delayWhen(auth => {
+      return this.saveAuth(auth);
+    }),
+    map(auth => {
+      this.authSource.next(auth);
+      console.log(`User ${auth.user.name} logged in`);
+      return auth.user;
+    })
+  );
 }
 ```
 
@@ -631,58 +746,36 @@ When testing in the browser, you should already see the object being stored in I
 
 You must now load it when the app starts.
 You can do that in the constructor of `AuthProvider`.
-Since `get` returns a promise, you can only use the result in a `.then` asynchronous callback:
+
+Since the storage provider's `get` method returns a promise,
+you can only use the result in a `.then` asynchronous callback:
 
 ```ts
-this.storage.get('auth').then(auth => {
-  this.auth = auth;
-});
-```
-
-However, simply doing this in the constructor of `AuthProvider` will not work.
-Why? Because of the code in you main component in `src/app/app.component.ts`:
-
-```ts
-if (this.auth.isAuthenticated()) {
-  this.rootPage = HomePage;
-} else {
-  this.rootPage = LoginPage;
-}
-```
-
-This code checks whether the user is authenticated immediately when the app starts.
-However, at that time, the promise returned by `this.storage.get('auth')` has not yet been resolved
-(since promises are always asynchronous).
-
-One way to solve the problem is to store the "initialization" promise in `AuthProvider` and provide a method to know when it is resolved:
-
-```ts
-private initializationPromise: Promise<void>;
-
 constructor(private http: HttpClient, private storage: Storage) {
-  this.initializationPromise = this.storage.get('auth').then(auth => {
-    this.auth = auth;
+
+  this.authSource = new ReplaySubject(1);
+  this.auth$ = this.authSource.asObservable();
+
+  // TODO: load the stored authentication response from storage when the app starts.
+  this.storage.get('auth').then(auth => {
+    // Push the loaded value into the observable stream.
+    this.authSource.next(auth);
   });
 }
-
-waitForInitialization(): Promise<void> {
-  return this.initializationPromise;
-}
-```
-
-That way, you can wait for initialization to be complete in the main component in `src/app/app.component.ts`:
-
-```ts
-this.auth.waitForInitialization().then(() => {
-  if (this.auth.isAuthenticated()) {
-    this.rootPage = HomePage;
-  } else {
-    this.rootPage = LoginPage;
-  }
-});
 ```
 
 Your app should now remember user credentials even when you reload it!
+
+Finally, also update the authentication provider's `logOut()` method to remove the stored authentication from storage:
+
+```ts
+logOut() {
+  this.authSource.next(null);
+  // TODO: remove the stored authentication response from storage when logging out.
+  this.storage.remove('auth');
+  console.log('User logged out');
+}
+```
 
 <a href="#top">Back to top</a>
 
@@ -690,7 +783,7 @@ Your app should now remember user credentials even when you reload it!
 
 ### Log out
 
-You should also allow the user to log out.
+You should also add a UI component to allow the user to log out.
 As an example, you will display a logout button in the issue creation screen.
 
 Add an `<ion-buttons>` tag with a logout button in `src/pages/create-issue/create-issue.html`:
@@ -701,8 +794,8 @@ Add an `<ion-buttons>` tag with a logout button in `src/pages/create-issue/creat
 
   <!-- Logout button -->
   <ion-buttons end>
-    <button ion-button icon-only (click)="logOut()">
-      <ion-icon name="log-out"></ion-icon>
+    <button ion-button icon-only (click)='logOut()'>
+      <ion-icon name='log-out'></ion-icon>
     </button>
   </ion-buttons>
 </ion-navbar>
@@ -722,9 +815,8 @@ To do that, you will need:
 After doing all that, your `CreateIssuePage` component should look something like this:
 
 ```ts
-import { Component } from '@angular/core';
-import { App, NavController, NavParams } from 'ionic-angular';
-
+// Other imports...
+// TODO: import the authentication provider and login page.
 import { AuthProvider } from '../../providers/auth/auth';
 import { LoginPage } from '../login/login';
 
@@ -733,13 +825,17 @@ import { LoginPage } from '../login/login';
 })
 export class CreateIssuePage {
 
-  constructor(private app: App, private auth: AuthProvider, public navCtrl: NavController, public navParams: NavParams) {
+  constructor(
+    // TODO: inject the authentication provider.
+    private auth: AuthProvider,
+    public navCtrl: NavController,
+    public navParams: NavParams
+  ) {
   }
 
+  // TODO: add a method to log out.
   logOut() {
-    this.auth.logOut().then(() => {
-      this.app.getRootNavs()[0].setRoot(LoginPage);
-    });
+    this.auth.logOut();
   }
 
 }
@@ -747,7 +843,37 @@ export class CreateIssuePage {
 
 You should now see the logout button in the navigation bar after logging in.
 
-Later, you might want to encapsulate it into a reusable component to include in other screens.
+You might want to encapsulate it into a reusable component later, to include in other screens.
+
+<a href="#top">Back to top</a>
+
+
+
+### Authentication observable magic
+
+Note that we saved ourselves a bit of trouble by implementing authentication with Observables in the main component:
+
+```ts
+// Direct the user to the correct page depending on whether he or she is logged in.
+this.auth.isAuthenticated().subscribe(authenticated => {
+  if (authenticated) {
+    this.rootPage = HomePage;
+  } else {
+    this.rootPage = LoginPage;
+  }
+});
+```
+
+It subscribes to the Observable authentication stream when the app starts and **keeps listening to events**,
+meaning that it will get notified of any change in the current authentication status:
+
+* When a user **logs in**, the subscription callback is called with `true` to indicate that a user logged in,
+  and the user is redirected to the `HomePage`.
+* When a user **logs out**, the subscription callback is called again with `false`,
+  and the user is redirected to the `LoginPage`.
+
+That way, we didn't have to explicitly add some more code to redirect the user to the login page
+when called the authentication provider's `logOut()` function from the `CreateIssuePage` component's `logOut()` method.
 
 <a href="#top">Back to top</a>
 
@@ -771,7 +897,7 @@ Content-Type: application/json
 With Angular, you would make this call like this:
 
 ```js
-this.http.post('https://comem-citizen-engagement.herokuapp.com/api/auth', issue, {
+httpClient.post('http://example.com/path', body, {
   headers: {
     Authorization: `Bearer ${token}`
   }
@@ -779,31 +905,41 @@ this.http.post('https://comem-citizen-engagement.herokuapp.com/api/auth', issue,
 ```
 
 But it's a bit annoying to have to specify this header for every request.
-After all, we know that we need it for many calls.
+After all, we know that we need it for most calls.
 
 [Interceptors](https://medium.com/@ryanchenkie_40935/angular-authentication-using-the-http-client-and-http-interceptors-2f9d1540eb8)
 are Angular services that can be registered with the HTTP client to automatically react to requests (or responses).
 This solves our problem: we want to register an interceptor that will automatically add the `Authorization` header to all requests if the user is logged in.
 
-To demonstrate that it works, start by adding a call to list issues in the `IssueListPage` component in `src/pages/issue-list/issue-list.ts`:
+To demonstrate that it works, start by adding a call to list issues in the `CreateIssuePage` component in `src/pages/create-issue/create-issue.ts`:
 
 ```ts
 // Other imports...
+// TODO: import Angular's HTTP client.
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-  templateUrl: 'issue-list.html'
+  templateUrl: 'create-issue.html'
 })
-export class IssueListPage {
+export class CreateIssuePage {
 
-  constructor(public http: HttpClient, public navCtrl: NavController, public navParams: NavParams) {
+  constructor(
+    // TODO: inject the HTTP client.
+    public http: HttpClient,
+    public navCtrl: NavController,
+    public navParams: NavParams
+  ) {
   }
 
   ionViewDidLoad() {
-    this.http.get('https://comem-citizen-engagement.herokuapp.com/api/issues').subscribe(issues => {
-      console.log(`Issues loaded`);
+    // TODO: make an HTTP request to retrieve the issue types.
+    const url = 'https://comem-citizen-engagement.herokuapp.com/api/issueTypes';
+    this.http.get(url).subscribe(issueTypes => {
+      console.log(`Issue types loaded`, issueTypes);
     });
   }
+
+  // ...
 
 }
 ```
@@ -823,6 +959,7 @@ Put the following contents in the generated `src/providers/auth-interceptor/auth
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
+import { first, switchMap } from 'rxjs/operators';
 
 import { AuthProvider } from '../auth/auth';
 
@@ -834,27 +971,32 @@ export class AuthInterceptorProvider implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
     // Retrieve AuthProvider at runtime from the injector.
-    // (Otherwise there would be a circular dependency: AuthInterceptorProvider -> AuthProvider -> HttpClient -> AuthInterceptorProvider).
+    // (Otherwise there would be a circular dependency:
+    //  AuthInterceptorProvider -> AuthProvider -> HttpClient -> AuthInterceptorProvider).
     const auth = this.injector.get(AuthProvider);
 
     // Get the bearer token (if any).
-    const token = auth.getToken();
+    return auth.getToken().pipe(
+      first(),
+      switchMap(token => {
 
-    // Add it to the request if it doesn't already have an Authorization header.
-    if (token && !req.headers.has('Authorization')) {
-      req = req.clone({
-        headers: req.headers.set('Authorization', `Bearer ${token}`)
-      });
-    }
+        // Add it to the request if it doesn't already have an Authorization header.
+        if (token && !req.headers.has('Authorization')) {
+          req = req.clone({
+            headers: req.headers.set('Authorization', `Bearer ${token}`)
+          });
+        }
 
-    // Perform the request.
-    return next.handle(req);
+        return next.handle(req);
+      })
+    );
   }
 
 }
 ```
 
 Now you simply need to register the interceptor in your application module.
+Since it's an HTTP interceptor, it's not like other providers and must be registered in a special way.
 In `src/app/app.module.ts`, add:
 
 ```ts
@@ -880,72 +1022,57 @@ Now all your API calls will have the `Authorization` header when the user is log
 
 
 
-## 5. Multi-environment configuration
+## Multi-environment & sensitive configuration
 
-A problem you will quickly encounter with Ionic is multiple environments.
-You want to be able to:
+Sometimes you might have to store values that should not be committed to version control:
 
-* serve the app locally;
-* run the app on a connected device.
+* **Environment-specific** values that may change depending on how you deploy your app (e.g. the URL of your API).
+* **Sensitive information** like access tokens or passwords.
 
-In the first case, as you've seen, you need to set up a proxy to work around the same-origin policy.
-But when you run the app on a device, Cordova sets things up so you don't have to do that, and you can't use the proxy.
+For example, in our earlier HTTP calls, the URL was **hardcoded**:
 
-This means that you need to change your URLs depending on which **environment** you're running the app in:
-
-* when serving the app locally, use `/api-proxy`;
-* when running the app on a device, use `https://comem-citizen-engagement.herokuapp.com/api`.
-
-In the [login implementation you did earlier](#security-api-login), the URL was hardcoded:
-
-```js
-$http({
-  method: 'POST',
-  url: '/api-proxy/auth',
-  data: loginCtrl.user
-})
+```ts
+const url = 'https://comem-citizen-engagement.herokuapp.com/api/issueTypes';
+this.http.get(url).subscribe(issueTypes => {
+  // ...
+});
 ```
 
-This is very bad considering the multi-environment problem.
-You would have to manually change the URL every time you change environments.
-Even if you set up a global variable so you only have to do it in once place, think what will happen when you start integrating with other APIs or services.
-You will have that many settings to change every time.
+This is not optimal considering the multi-environment problem.
+If you wanted to change environments, you would have to manually change the URL every time.
 
-Let's find a way to automate this process.
+Let's find a way to centralize this configuration.
 
 <a href="#top">Back to top</a>
 
 
 
-### Write environment-specific configuration files
+### Create a sample configuration file
 
-A pattern used in many frameworks is to have a configuration file for each environment.
-Since we only have the URL of the API for now, the configuration would look like this:
+Create a `src/app/config.sample.ts` file:
 
-```json
-{
-  "apiUrl": "https://<API_HOST>/api"
+```ts
+// Copy this file to config.ts and fill in appropriate values.
+export const config = {
+  apiUrl: 'https://example.com/api'
 }
 ```
 
-Let's set this up now.
-Create a `config` directory at the root of your application.
+This file is a placeholder which should **not** contain the actual configuration.
+Its purpose is to explain to other developers of the project that they should create a `config.ts` file and fill in the actual values.
+This avoids committing those values into the repository.
 
-Add `development.json` in that directory.
-This file contains the configuration for the **development environment**, when you develop the app locally:
+<a href="#top">Back to top</a>
 
-```json
-{
-  "apiUrl": "/api-proxy"
-}
-```
 
-Now add `production.json` in the same directory.
-This file contains the configuration for the **production environment**, meaning when you run the app on a device:
 
-```json
-{
-  "apiUrl": "https://comem-citizen-engagement.herokuapp.com/api"
+### Create the actual configuration file
+
+You can now create the actual `src/app/config.ts` configuration file:
+
+```ts
+export const config = {
+  apiUrl: 'https://comem-citizen-engagement.herokuapp.com/api'
 }
 ```
 
@@ -953,40 +1080,38 @@ This file contains the configuration for the **production environment**, meaning
 
 
 
-### Do not put configuration files under version control
+### Add the configuration file to your `.gitignore` file
 
-Another good practice is to **NOT put your configuration files under version control**, especially if your Git repository is public.
-API endpoints should not be exposed for everyone to see.
-You might also store credentials for other APIs and services in the configuration files.
-You definitely don't want those exposed.
-
-Add the following line to your `.gitignore` file at the root of the repository:
+Of course, you **don't want to commit `config.ts`**, but you do want to commit `config.sample.ts` so that anyone who clones your project can see what configuration options are required.
+Add these 2 lines to your `.gitignore` file:
 
 ```
-config/*
+src/app/config.*
+!src/app/config.sample.ts
 ```
 
-Now there's just a little problem: if you clone this repository on another machine, you won't have any configuration file.
-This is good because you don't want anyone who clones the repository to obtain configuration that should remain secret.
-But maybe you forgot what goes into the configuration file.
+The first line ignores any `config.*` file in the `src/app` directory.
+The second line adds an exception: that the `config.sample.ts` should **not** be ignored.
+You now have your uncommitted configuration file!
 
-That is why you should always provide a sample configuration file.
-Add `sample.json` to the `config` directory:
+Not only that, but if you often need to quickly swap between different configurations,
+you may create several versions of the configuration file, like `config.dev.ts` or `config.prod.ts`, which will all be ignored by Git.
+Everytime you need to use one of them, simply overwrite `config.ts` with the correct one:
+
+```bash
+$> cp src/app/config.dev.ts src/app/config.ts
+$> cp src/app/config.prod.ts src/app/config.ts
+```
+
+This is something you could put in your `package.json`'s `scripts` section:
 
 ```json
-{
-  "apiUrl": "https://example.com/api"
+"scripts": {
+  "dev": "cp src/app/config.dev.ts src/app/config.ts",
+  "prod": "cp src/app/config.prod.ts src/app/config.ts",
+  "...": "..."
 }
 ```
-
-Also add this line to the `.gitignore` file, **below the other line you added**:
-
-```
-!config/sample.json
-```
-
-This is an exception to the previous rule.
-It tells Git to keep the `sample.json` file even though you're ignoring everything else in the directory.
 
 <a href="#top">Back to top</a>
 
@@ -994,113 +1119,52 @@ It tells Git to keep the `sample.json` file even though you're ignoring everythi
 
 ### Feed the configuration to Angular
 
-Now that you have your environment-specific configuration files, you want to be able to use this configuration in Angular controllers and services.
-You don't have direct access to those files from the Angular application.
-You need to convert the JSON file for the correct environment into something Angular can use.
+Now that you have your configuration files, you want to be use its values in code.
 
-This kind of configuration is usually found in Angular constants:
+Since it's a TypeScript file like any other, you simply have to import and use it,
+for example in `src/pages/create-issue/create-issue.ts`:
 
-```js
-.constant('apiUrl', 'https://example.com/api')
-```
+```ts
+// Other imports...
+// TODO: import the configuration.
+import { config } from '../../app/config';
 
-Of course, you can't just use a hardcoded URL like this.
-Let's create a new `constants.js` file to hold these constants.
-Unlike other JavaScript files that are in `www/js`, you should create this one at the root of the repository (at the same level as `www`):
-
-```js
-angular.module('citizen-engagement')
-  .constant('apiUrl', '@apiUrl@')
-;
-```
-
-As you can see, there's no URL here; it's only a placeholder.
-We'll use [Gulp](http://gulpjs.com), the automation tool bundled with Ionic, to insert the actual configuration values.
-Gulp allows you to define custom tasks for your project; for example, you could define a task to compress your Javascript files.
-In this case, you're going to define a task to inject the configuration into the constants template, and save the result where your app can use it.
-
-Install the `gulp-replace` dependency that can do the replacing for us:
-
-```
-npm install --save gulp-replace
-```
-
-Include it at the top of `gulpfile.js`:
-
-```js
-var replace = require('gulp-replace');
-```
-
-Now add the task (still in `gulpfile.js`):
-
-```js
-function saveConfig(environment) {
-
-  var config = require('./config/' + environment + '.json');
-
-  // Use `constants.js` as the source.
-  gulp.src(['constants.js'])
-
-    // Replace all occurrences of @apiUrl@.
-    .pipe(replace(/@apiUrl@/g, config.apiUrl))
-
-    // Save the result in www/js.
-    .pipe(gulp.dest('www/js'));
-}
-
-gulp.task('config-development', function(){
-  saveConfig('development');
-});
-
-gulp.task('config-production', function(){
-  saveConfig('production');
-});
-```
-
-Now, when you want to switch environments, just run `gulp config-development` or `gulp config-production` from your terminal, and the Angular constants in `www/js/constants.js` will be updated.
-
-**You must also add this file to `.gitignore`**, or all this work to avoid exposing configuration values will have been for nothing:
-
-```
-www/js/constants.js
-```
-
-All that remains is to use the constants in your app.
-
-Since this is a new file, you must add it to `www/index.html`:
-
-```html
-  <head>
-    <!-- ... meta, link, etc ... -->
-
-    <!-- your app's js -->
-    <script src="js/app.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/constants.js"></script>
-  </head>
-```
-
-You can now inject `apiUrl` anywhere you want.
-Let's add it to the injections of `LoginCtrl` (in `www/js/auth.js`):
-
-```js
-.controller('LoginCtrl', function(apiUrl, AuthService, $http, $ionicHistory, $ionicLoading, $scope, $state) {
+// ...
+export class CreateIssuePage {
   // ...
-});
+  ionViewDidLoad() {
+    console.log('ionViewDidLoad CreateIssuePage');
+
+    // TODO: replace the hardcoded API URL by the one from the configuration.
+    const url = `${config.apiUrl}/issueTypes`;
+    this.httpClient.get(url).subscribe(issueTypes => {
+      console.log('Issue types loaded', issueTypes);
+    });
+  }
+  // ...
+}
 ```
 
-Now update the API call to use `apiUrl` (same file):
+Do not forget to also update the authentication provider in `src/providers/auth/auth.ts`,
+which also has a hardcoded URL:
 
-```js
-$http({
-  method: 'POST',
-  url: apiUrl + '/auth',
-  data: loginCtrl.user
-})
+```ts
+// Other imports...
+// TODO: import the configuration.
+import { config } from '../../app/config';
+
+// ...
+export class AuthProvider {
+  // ...
+  logIn(authRequest: AuthRequest): Observable<User> {
+
+    // TODO: replace the hardcoded API URL by the one from the configuration.
+    const authUrl = `${config.apiUrl}/auth`;
+    // ...
+  }
+  // ...
+}
 ```
-
-Finally!
-Your configuration is now hidden from public view and properly injected into the app.
 
 <a href="#top">Back to top</a>
 
@@ -1150,4 +1214,5 @@ Reference:
 [angular-component]: https://angular.io/guide/architecture#components
 [citizen-engagement-api]: https://comem-citizen-engagement.herokuapp.com/api
 [ionic-tabs]: https://ionicframework.com/docs/components/#tabs
+[rxjs-delay-when]: http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-delayWhen
 [sass]: http://sass-lang.com
