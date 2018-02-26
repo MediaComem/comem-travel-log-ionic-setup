@@ -1247,6 +1247,62 @@ Reference:
 * https://forum.ionicframework.com/t/ionic-serve-crash-on-save/115615/39
 * https://github.com/ionic-team/ionic-app-scripts/issues/1345
 
+### Cordova doesn't want JDK 1.9
+
+```
+$> ionic cordova run android
+Running app-scripts build: --platform android --target cordova
+[10:14:06]  build dev started ...
+[10:14:06]  clean started ...
+[10:14:06]  clean finished in 2 ms
+[10:14:06]  copy started ...
+[10:14:06]  deeplinks started ...
+[10:14:06]  deeplinks finished in 36 ms
+[10:14:06]  transpile started ...
+[10:14:08]  transpile finished in 2.39 s
+[10:14:08]  preprocess started ...
+[10:14:08]  preprocess finished in less than 1 ms
+[10:14:08]  webpack started ...
+[10:14:08]  copy finished in 2.53 s
+[10:14:13]  webpack finished in 4.51 s
+[10:14:13]  sass started ...
+[10:14:13]  sass finished in 709 ms
+[10:14:13]  postprocess started ...
+[10:14:13]  postprocess finished in 4 ms
+[10:14:13]  lint started ...
+[10:14:13]  build dev finished in 7.73 s
+> cordova run android
+
+You have been opted out of telemetry. To change this, run: cordova telemetry on.
+Android Studio project detected
+
+ANDROID_HOME=/Users/jdoe/Library/Android/sdk
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
+(node:6282) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): CordovaError: Requirements check failed for JDK 1.8 or greater
+(node:6282) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+
+[OK] Your app has been deployed.
+     Did you know you can live-reload changes from your app with --livereload?
+
+[10:14:15]  lint finished in 1.98 s
+```
+
+At the time of writing these instructions, Android and Cordova do not support version 9 of the JDK.
+
+Install the JDK 8, find its full path, and put it first in your path when running `ionic` or `cordova`:
+
+```
+# For example, on macOS
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_161.jdk/Contents/Home
+```
+
+Alternatively, add that line to your `.bash_profile` to do it automatically.
+
+Reference:
+
+* https://forum.ionicframework.com/t/error-requirements-check-failed-for-jdk-1-8-or-greater/68734
+* https://issues.apache.org/jira/browse/CB-13606
+
 
 
 [angular-component]: https://angular.io/guide/architecture#components
