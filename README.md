@@ -445,7 +445,6 @@ You can replace the contents of the generated `srv/providers/auth/auth.ts` file 
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Response } from '@angular/http';
-import { Storage } from '@ionic/storage';
 import { Observable, ReplaySubject } from 'rxjs/Rx';
 import { map } from 'rxjs/operators';
 
@@ -462,8 +461,9 @@ export class AuthProvider {
   private auth$: Observable<AuthResponse>;
   private authSource: ReplaySubject<AuthResponse>;
 
-  constructor(private http: HttpClient, private storage: Storage) {
+  constructor(private http: HttpClient) {
     this.authSource = new ReplaySubject(1);
+    this.authSource.next(undefined);
     this.auth$ = this.authSource.asObservable();
   }
 
