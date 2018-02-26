@@ -412,16 +412,22 @@ Let's generate a reusable, injectable service to manage authentication:
 $> ionic generate provider Auth
 ```
 
-Register the new provider in the module's `providers` array in `src/app/app.module.ts`:
+Register the new provider in the module's `providers` array in `src/app/app.module.ts`.
+You also need to add Angular's `HttpClientModule` to the module's `imports` array because the provider uses `HttpClient`:
 
 ```ts
 // Other imports...
-// TODO: import the new provider.
+// TODO: import Angular's HttpClientModule and the new provider.
+import { HttpClientModule } from '@angular/common/http';
 import { AuthProvider } from '../providers/auth/auth';
 
 @NgModule({
   declarations: [ /* ... */ ],
-  imports: [ /* ... */ ],
+  imports: [
+    // ...
+    // TODO: import Angular's HttpClientModule.
+    HttpClientModule
+  ],
   bootstrap: [ /* ... */ ],
   entryComponents: [ /* ... */],
   providers: [
