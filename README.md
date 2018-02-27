@@ -697,7 +697,9 @@ constructor(
 
 The login screen is ready!
 If you reload your app, you should see that you are automatically redirected to the login page.
-You also can't go to any other screen any more, since we haven't implemented the actual login yet.
+
+You can now log in.
+You should be able to use the username `jdoe` and the password `test` with the Citizen Engagement API's standard dataset.
 
 <a href="#top">Back to top</a>
 
@@ -859,6 +861,7 @@ import { AuthProvider } from '../../providers/auth/auth';
 import { LoginPage } from '../login/login';
 
 @Component({
+  selector: 'page-create-issue',
   templateUrl: 'create-issue.html'
 })
 export class CreateIssuePage {
@@ -957,11 +960,13 @@ To demonstrate that it works, start by adding a call to list issues in the `Crea
 import { HttpClient } from '@angular/common/http';
 
 @Component({
+  selector: 'page-create-issue',
   templateUrl: 'create-issue.html'
 })
 export class CreateIssuePage {
 
   constructor(
+    private auth: AuthProvider,
     // TODO: inject the HTTP client.
     public http: HttpClient,
     public navCtrl: NavController,
@@ -1087,7 +1092,9 @@ Let's find a way to centralize this configuration.
 
 ### Create a sample configuration file
 
-Create a `src/app/config.sample.ts` file:
+Create a `src/app/config.sample.ts` file.
+This file is a placeholder which should **NOT** contain the actual configuration.
+Its purpose is to explain to other developers of the project that they should create a `config.ts` file and fill in the actual values:
 
 ```ts
 // Copy this file to config.ts and fill in appropriate values.
@@ -1096,17 +1103,13 @@ export const config = {
 }
 ```
 
-This file is a placeholder which should **not** contain the actual configuration.
-Its purpose is to explain to other developers of the project that they should create a `config.ts` file and fill in the actual values.
-This avoids committing those values into the repository.
-
 <a href="#top">Back to top</a>
 
 
 
 ### Create the actual configuration file
 
-You can now create the actual `src/app/config.ts` configuration file:
+You can now create the actual `src/app/config.ts` configuration file, this time containing the actual configuration values:
 
 ```ts
 export const config = {
@@ -1120,7 +1123,8 @@ export const config = {
 
 ### Add the configuration file to your `.gitignore` file
 
-Of course, you **don't want to commit `config.ts`**, but you do want to commit `config.sample.ts` so that anyone who clones your project can see what configuration options are required.
+Of course, you **don't want to commit `config.ts`**, but you do want to commit `config.sample.ts`
+so that anyone who clones your project can see what configuration options are required.
 Add these 2 lines to your `.gitignore` file:
 
 ```
@@ -1157,7 +1161,7 @@ This is something you could put in your `package.json`'s `scripts` section:
 
 ### Feed the configuration to Angular
 
-Now that you have your configuration files, you want to be use its values in code.
+Now that you have your configuration files, you want to use its values in code.
 
 Since it's a TypeScript file like any other, you simply have to import and use it,
 for example in `src/pages/create-issue/create-issue.ts`:
@@ -1210,6 +1214,8 @@ export class AuthProvider {
 
 ## Troubleshooting
 
+
+
 ### `ionic serve` crashes with an `ECONNRESET` error when saving a file
 
 The output of `ionic serve` after saving a file:
@@ -1246,6 +1252,8 @@ Reference:
 
 * https://forum.ionicframework.com/t/ionic-serve-crash-on-save/115615/39
 * https://github.com/ionic-team/ionic-app-scripts/issues/1345
+
+
 
 ### Cordova doesn't want JDK 1.9
 
