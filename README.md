@@ -1,9 +1,9 @@
-# COMEM+ Citizen Engagement Ionic Setup
+# COMEM+ Travel Log Ionic Setup
 
 <a name="top"></a>
 
-This repository contains instructions to build a skeleton application that can serve as a starting point to develop the Citizen Engagement mobile application.
-The completed skeleton app is available [here](https://github.com/MediaComem/comem-citizen-engagement-ionic-starter).
+This repository contains instructions to build a skeleton application that can serve as a starting point to develop the Travel Log mobile application.
+The completed skeleton app is available [here](https://github.com/MediaComem/comem-travel-log-ionic-starter).
 
 This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Applications course](https://github.com/MediaComem/comem-appmob) taught at [HEIG-VD](http://www.heig-vd.ch).
 
@@ -45,8 +45,8 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
 
 ## Prerequisites
 
-These instructions assume that you are using the Citizen Engagement API described in the previous [Web Services course](https://github.com/MediaComem/comem-webserv),
-and that you are familiar with the [documentation of the reference API](https://mediacomem.github.io/comem-citizen-engagement-api).
+These instructions assume that you are using the Travel Log API based on one of the suggestions of the previous [Web Services course](https://github.com/MediaComem/comem-webserv),
+and that you are familiar with the [documentation of the reference API](https://comem-travel-log-api.herokuapp.com).
 
 You will need to have [Node.js](https://nodejs.org) installed.
 The latest LTS (Long Term Support) version is recommended (v8.9.4 at the time of writing these instructions).
@@ -60,21 +60,11 @@ The latest LTS (Long Term Support) version is recommended (v8.9.4 at the time of
 This guide describes a proposed list of features and a user interface based on those features.
 This is only a suggestion. You can support other features and make a different user interface.
 
-The proposed app should allow citizens to do the following:
+The proposed app should users to do the following:
 
-* add new issues:
-  * the issue should have a type and description;
-  * the user should be able to take a photo of the issue;
-  * the issue should be geolocated;
-* see existing issues on an interactive map;
-* browse the list of existing issues:
-  * issues should be sorted by date;
-* see the details of an issue:
-  * date;
-  * description;
-  * picture;
-  * comments;
-* add comments to an issue.
+* Create new trips & places.
+* See visited places on an interactive map.
+* Browse the list of trips.
 
 The following sections describe a proposed UI mockup of the app and steps to set up a skeleton implementation.
 
@@ -90,12 +80,12 @@ This helps you think in terms of the whole app and of the relationships between 
 
 ![UI Design](setup/ui-structure.png)
 
-As you can see, we propose to use a tab view with 3 screens, and an additional 4th screen accessible from the issue list:
+As you can see, we propose to use a tab view with 3 screens, and an additional 4th screen accessible from the trip list:
 
-* the new issue tab;
-* the issue map tab;
-* the issue list tab:
-  * the issue details screen.
+* The new trip tab.
+* The places map tab.
+* The trip list tab.
+  * A trip details page.
 
 Now that we know what we want, we can start setting up the app!
 
@@ -119,7 +109,7 @@ Go in the directory where you want the app, then generate a blank Ionic app with
 
 ```bash
 $> cd /path/to/projects
-$> ionic start citizen-engagement blank
+$> ionic start travel-log blank
 
 ? Would you like to integrate your new app with Cordova to target native iOS and Android? Yes
 ? Install the free Ionic Pro SDK and connect your app? No
@@ -128,7 +118,7 @@ $> ionic start citizen-engagement blank
 Go into the app directory. The `ionic start` command should have already initialized a Git repository:
 
 ```bash
-$> cd citizen-engagement
+$> cd travel-log
 $> git log
 commit 2a3f83f14ae2a82d00cb2b2960dda1c1e0b0a432 (HEAD -> master)
 Author: John Doe <john.doe@example.com>
@@ -161,10 +151,10 @@ You should see something like this:
 
 As defined in our UI design, we want the following 4 screens:
 
-* the issue creation tab;
-* the issue map tab;
-* the issue list tab:
-  * the issue details screen.
+* The trip creation tab.
+* The places map tab.
+* The trip list tab.
+  * The trip details screen.
 
 Let's start by setting up the 3 tabs.
 We will use Ionic's [Tabs][ionic-tabs] component.
@@ -179,23 +169,23 @@ Each page will be an [Angular component][angular-component].
 Ionic has a `generate` command that can automatically set up the files we need to create each page's component:
 
 ```bash
-$> ionic generate page --no-module CreateIssue
-$> ionic generate page --no-module IssueMap
-$> ionic generate page --no-module IssueList
+$> ionic generate page --no-module CreateTrip
+$> ionic generate page --no-module PlacesMap
+$> ionic generate page --no-module TripList
 ```
 
 This will generate the following files:
 
 ```
-src/pages/create-issue/create-issue.html
-src/pages/create-issue/create-issue.scss
-src/pages/create-issue/create-issue.ts
-src/pages/issue-map/issue-map.html
-src/pages/issue-map/issue-map.scss
-src/pages/issue-map/issue-map.ts
-src/pages/issue-list/issue-list.html
-src/pages/issue-list/issue-list.scss
-src/pages/issue-list/issue-list.ts
+src/pages/create-trip/create-trip.html
+src/pages/create-trip/create-trip.scss
+src/pages/create-trip/create-trip.ts
+src/pages/places-map/places-map.html
+src/pages/places-map/places-map.scss
+src/pages/places-map/places-map.ts
+src/pages/trip-list/trip-list.html
+src/pages/trip-list/trip-list.scss
+src/pages/trip-list/trip-list.ts
 ```
 
 For each page, we have:
@@ -205,11 +195,11 @@ For each page, we have:
 * An Angular component.
 
 Now update the HTML template for each page and add some content within the `<ion-content>` tag.
-For example, in `src/pages/create-issue/create-issue.html`:
+For example, in `src/pages/create-trip/create-trip.html`:
 
 ```html
 <ion-content padding>
-  Let's create an issue.
+  Let's create a trip.
 </ion-content>
 ```
 
@@ -228,26 +218,26 @@ You must **declare** them in 2 places in your main Angular module in `src/app/ap
 ```js
 // Other imports...
 // TODO: import the new components.
-import { CreateIssuePage } from '../pages/create-issue/create-issue';
-import { IssueListPage } from '../pages/issue-list/issue-list';
-import { IssueMapPage } from '../pages/issue-map/issue-map';
+import { CreateTripPage } from '../pages/create-trip/create-trip';
+import { TripListPage } from '../pages/trip-list/trip-list';
+import { PlacesMapPage } from '../pages/places-map/places-map';
 
 @NgModule({
   declarations: [
     MyApp,
     HomePage,
-    CreateIssuePage, // TODO: add the components to "declarations".
-    IssueListPage,
-    IssueMapPage
+    CreateTripPage, // TODO: add the components to "declarations".
+    TripListPage,
+    PlacesMapPage
   ],
   imports: [ /* ... */ ],
   bootstrap: [ /* ... */ ],
   entryComponents: [
     MyApp,
     HomePage,
-    CreateIssuePage, // TODO: add the components to "entryComponents".
-    IssueListPage,
-    IssueMapPage
+    CreateTripPage, // TODO: add the components to "entryComponents".
+    TripListPage,
+    PlacesMapPage
   ],
   providers: [ /* ... */ ]
 })
@@ -259,9 +249,9 @@ Second, **update the home page's component** (`src/pages/home/home.ts`) to inclu
 ```js
 // Other imports...
 // TODO: import the new components.
-import { CreateIssuePage } from '../create-issue/create-issue';
-import { IssueMapPage } from '../issue-map/issue-map';
-import { IssueListPage } from '../issue-list/issue-list';
+import { CreateTripPage } from '../create-trip/create-trip';
+import { PlacesMapPage } from '../places-map/places-map';
+import { TripListPage } from '../trip-list/trip-list';
 
 // TODO: add an interface to represent a tab.
 export interface HomePageTab {
@@ -282,9 +272,9 @@ export class HomePage {
   constructor(public navCtrl: NavController) {
     // TODO: define some tabs.
     this.tabs = [
-      { title: 'New Issue', icon: 'add', component: CreateIssuePage },
-      { title: 'Issue Map', icon: 'map', component: IssueMapPage },
-      { title: 'Issue List', icon: 'list', component: IssueListPage }
+      { title: 'New Trip', icon: 'add', component: CreateTripPage },
+      { title: 'Places Map', icon: 'map', component: PlacesMapPage },
+      { title: 'Trip List', icon: 'list', component: TripListPage }
     ];
   }
 
@@ -310,11 +300,11 @@ You should now be able to navigate between the 3 tabs!
 
 ## Set up security
 
-To use the app, a citizen should identify him- or herself.
+To use the app, a user should identify him- or herself.
 You will add a login screen that the user must go through before accessing the other screens.
-Authentication will be performed by the [Citizen Engagement API][citizen-engagement-api].
+Authentication will be performed by the [Travel Log API][travel-log-api].
 
-The API requires a bearer token be sent to identify the user when making requests on some resources (e.g. when creating issues).
+The API requires a bearer token be sent to identify the user when making requests on some resources (e.g. when creating trips).
 This token must be sent in the `Authorization` header for all requests requiring identification.
 Once login/logout is implemented, you will also set up an HTTP interceptor to automatically add this header to every request.
 
@@ -322,7 +312,7 @@ Once login/logout is implemented, you will also set up an HTTP interceptor to au
 
 ### Check the documentation of the API's authentication resource
 
-The Citizen Engagement API provides an [`/auth` resource](https://mediacomem.github.io/comem-citizen-engagement-api/#auth_post)
+The Travel Log API provides an [`/auth` resource](https://comem-travel-log-api.herokuapp.com/#api-Authentication-CreateAuthenticationToken)
 on which you can make a POST request to authenticate.
 
 You need to make a call that looks like this:
@@ -332,7 +322,7 @@ POST /api/auth HTTP/1.1
 Content-Type: application/json
 
 {
-  "name": "jdoe",
+  "username": "jdoe",
   "password": "test"
 }
 ```
@@ -347,13 +337,12 @@ Content-Type: application/json
 {
   "token": "eyJhbGciOiJIU.eyJpc3MiOiI1OGM1YjUwZTA0Nm.gik21xyT4_NzsduWMLVp8",
   "user": {
-    "firstname": "John",
-    "id": "58c5b50e046ea004e4af9d32",
-    "lastname": "Doe",
+    "createdAt": "2018-12-09T11:58:18.265Z",
+    "href": "/api/users/d68cf4e9-1349-4d45-b356-c1294e49ef23",
+    "id": "d68cf4e9-1349-4d45-b356-c1294e49ef23",
     "name": "jdoe",
-    "roles": [
-      "citizen"
-    ]
+    "tripsCount": 2,
+    "updatedAt": "2018-12-09T11:58:18.265Z"
   }
 }
 ```
@@ -376,9 +365,9 @@ export class User {
   id: string;
   href: string;
   name: string;
-  firstname: string;
-  lastname: string;
-  roles: string[];
+  tripsCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
@@ -386,7 +375,7 @@ Create a `src/models/auth-request.ts` file which exports a model representing a 
 
 ```ts
 export class AuthRequest {
-  name: string;
+  username: string;
   password: string;
 }
 ```
@@ -481,7 +470,7 @@ export class AuthProvider {
 
   logIn(authRequest: AuthRequest): Observable<User> {
 
-    const authUrl = 'https://comem-citizen-engagement.herokuapp.com/api/auth';
+    const authUrl = 'https://comem-travel-log-api.herokuapp.com/api/auth';
     return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
       map(auth => {
         this.authSource.next(auth);
@@ -543,13 +532,13 @@ Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/l
     <!-- Name input -->
     <ion-item>
       <ion-label floating>Name</ion-label>
-      <ion-input type='text' name='name'
-                 #nameInput='ngModel' [(ngModel)]='authRequest.name' required></ion-input>
+      <ion-input type='text' name='username'
+                 #usernameInput='ngModel' [(ngModel)]='authRequest.username' required></ion-input>
     </ion-item>
 
-    <!-- Error message displayed if the name is invalid -->
-    <ion-item *ngIf='nameInput.invalid && nameInput.dirty' no-lines>
-      <p ion-text color='danger'>Name is required.</p>
+    <!-- Error message displayed if the username is invalid -->
+    <ion-item *ngIf='usernameInput.invalid && usernameInput.dirty' no-lines>
+      <p ion-text color='danger'>Username is required.</p>
     </ion-item>
 
     <!-- Password input -->
@@ -572,7 +561,7 @@ Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/l
     <button type='submit' [disabled]='form.invalid' ion-button block>Log in</button>
 
     <!-- Error message displayed if the login failed -->
-    <p *ngIf='loginError' ion-text color='danger'>Name or password is invalid.</p>
+    <p *ngIf='loginError' ion-text color='danger'>Username or password is invalid.</p>
 
   </div>
 </form>
@@ -699,7 +688,7 @@ The login screen is ready!
 If you reload your app, you should see that you are automatically redirected to the login page.
 
 You can now log in.
-You should be able to use the username `jdoe` and the password `test` with the Citizen Engagement API's standard dataset.
+You should be able to use the username `jdoe` and the password `test` with the Travel Log API's standard dataset.
 
 <a href="#top">Back to top</a>
 
@@ -767,7 +756,7 @@ To do that, use RxJS's [`delayWhen`][rxjs-delay-when] operator, which allows us 
 ```ts
 logIn(authRequest: AuthRequest): Observable<User> {
 
-  const authUrl = 'https://comem-citizen-engagement.herokuapp.com/api/auth';
+  const authUrl = 'https://comem-travel-log-api.herokuapp.com/api/auth';
   return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
     // TODO: delay the observable stream while persisting the authentication response.
     delayWhen(auth => {
@@ -824,13 +813,13 @@ logOut() {
 ### Log out
 
 You should also add a UI component to allow the user to log out.
-As an example, you will display a logout button in the issue creation screen.
+As an example, you will display a logout button in the trip creation screen.
 
-Add an `<ion-buttons>` tag with a logout button in `src/pages/create-issue/create-issue.html`:
+Add an `<ion-buttons>` tag with a logout button in `src/pages/create-trip/create-trip.html`:
 
 ```html
 <ion-navbar>
-  <ion-title>CreateIssue</ion-title>
+  <ion-title>CreateTrip</ion-title>
 
   <!-- Logout button -->
   <ion-buttons end>
@@ -848,11 +837,11 @@ To do that, you will need:
 
 * To inject the Ionic application (`App` from the `ionic-angular` package),
   which will allow you to set the root page and thereby clear the navigation stack.
-* To add a `logOut` method to the `CreateIssuePage` component,
+* To add a `logOut` method to the `CreateTripPage` component,
   since it's what we call in its HTML template above.
 * To inject `AuthProvider` and use its `logOut` method.
 
-After doing all that, your `CreateIssuePage` component should look something like this:
+After doing all that, your `CreateTripPage` component should look something like this:
 
 ```ts
 // Other imports...
@@ -861,10 +850,10 @@ import { AuthProvider } from '../../providers/auth/auth';
 import { LoginPage } from '../login/login';
 
 @Component({
-  selector: 'page-create-issue',
-  templateUrl: 'create-issue.html'
+  selector: 'page-create-trip',
+  templateUrl: 'create-trip.html'
 })
-export class CreateIssuePage {
+export class CreateTripPage {
 
   constructor(
     // TODO: inject the authentication provider.
@@ -914,7 +903,7 @@ meaning that it will get notified of any change in the current authentication st
   and the user is redirected to the `LoginPage`.
 
 That way, we didn't have to explicitly add some more code to redirect the user to the login page
-when called the authentication provider's `logOut()` function from the `CreateIssuePage` component's `logOut()` method.
+when called the authentication provider's `logOut()` function from the `CreateTripPage` component's `logOut()` method.
 
 <a href="#top">Back to top</a>
 
@@ -924,11 +913,11 @@ when called the authentication provider's `logOut()` function from the `CreateIs
 
 Now that you have login and logout functionality, and an authentication service that stores an authentication token, you can authenticate for other API calls.
 
-Looking at the API documentation, at some point you will need to [create an issue](https://mediacomem.github.io/comem-citizen-engagement-api/#issues_post).
+Looking at the API documentation, at some point you will need to [create a trip](https://comem-travel-log-api.herokuapp.com/#api-Trips-CreateTrip).
 The documentation states that you must send a bearer token in the `Authorization` header, like this:
 
 ```
-POST /api/issues HTTP/1.1
+POST /api/trips HTTP/1.1
 Authorization: Bearer 0a98wumv
 Content-Type: application/json
 
@@ -952,7 +941,7 @@ After all, we know that we need it for most calls.
 are Angular services that can be registered with the HTTP client to automatically react to requests (or responses).
 This solves our problem: we want to register an interceptor that will automatically add the `Authorization` header to all requests if the user is logged in.
 
-To demonstrate that it works, start by adding a call to list issues in the `CreateIssuePage` component in `src/pages/create-issue/create-issue.ts`:
+To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/pages/trip-list/trip-list.ts`:
 
 ```ts
 // Other imports...
@@ -960,10 +949,10 @@ To demonstrate that it works, start by adding a call to list issues in the `Crea
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'page-create-issue',
-  templateUrl: 'create-issue.html'
+  selector: 'page-trip-list',
+  templateUrl: 'trip-list.html'
 })
-export class CreateIssuePage {
+export class TripListPage {
 
   constructor(
     private auth: AuthProvider,
@@ -975,10 +964,10 @@ export class CreateIssuePage {
   }
 
   ionViewDidLoad() {
-    // TODO: make an HTTP request to retrieve the issue types.
-    const url = 'https://comem-citizen-engagement.herokuapp.com/api/issueTypes';
-    this.http.get(url).subscribe(issueTypes => {
-      console.log(`Issue types loaded`, issueTypes);
+    // TODO: make an HTTP request to retrieve the trips.
+    const url = 'https://comem-travel-log-api.herokuapp.com/api/trips';
+    this.http.get(url).subscribe(trips => {
+      console.log(`Trips loaded`, trips);
     });
   }
 
@@ -987,7 +976,7 @@ export class CreateIssuePage {
 }
 ```
 
-If you display the issue list page and check network requests in Chrome's developer tools,
+If you display the trip list page and check network requests in Chrome's developer tools,
 you will see that there is no `Authorization` header sent even when the user is logged in.
 
 Now you can generate the interceptor service:
@@ -1075,8 +1064,8 @@ Sometimes you might have to store values that should not be committed to version
 For example, in our earlier HTTP calls, the URL was **hardcoded**:
 
 ```ts
-const url = 'https://comem-citizen-engagement.herokuapp.com/api/issueTypes';
-this.http.get(url).subscribe(issueTypes => {
+const url = 'https://comem-travel-log-api.herokuapp.com/api/trips';
+this.http.get(url).subscribe(trips => {
   // ...
 });
 ```
@@ -1113,7 +1102,7 @@ You can now create the actual `src/app/config.ts` configuration file, this time 
 
 ```ts
 export const config = {
-  apiUrl: 'https://comem-citizen-engagement.herokuapp.com/api'
+  apiUrl: 'https://comem-travel-log-api.herokuapp.com/api'
 }
 ```
 
@@ -1164,7 +1153,7 @@ This is something you could put in your `package.json`'s `scripts` section:
 Now that you have your configuration files, you want to use its values in code.
 
 Since it's a TypeScript file like any other, you simply have to import and use it,
-for example in `src/pages/create-issue/create-issue.ts`:
+for example in `src/pages/trip-list/trip-list.ts`:
 
 ```ts
 // Other imports...
@@ -1172,15 +1161,15 @@ for example in `src/pages/create-issue/create-issue.ts`:
 import { config } from '../../app/config';
 
 // ...
-export class CreateIssuePage {
+export class TripListPage {
   // ...
   ionViewDidLoad() {
-    console.log('ionViewDidLoad CreateIssuePage');
+    console.log('ionViewDidLoad TripListPage');
 
     // TODO: replace the hardcoded API URL by the one from the configuration.
-    const url = `${config.apiUrl}/issueTypes`;
-    this.httpClient.get(url).subscribe(issueTypes => {
-      console.log('Issue types loaded', issueTypes);
+    const url = `${config.apiUrl}/trips`;
+    this.httpClient.get(url).subscribe(trips => {
+      console.log('Trips loaded', trips);
     });
   }
   // ...
@@ -1314,7 +1303,7 @@ Reference:
 
 
 [angular-component]: https://angular.io/guide/architecture#components
-[citizen-engagement-api]: https://comem-citizen-engagement.herokuapp.com/api
 [ionic-tabs]: https://ionicframework.com/docs/components/#tabs
 [rxjs-delay-when]: http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-delayWhen
 [sass]: http://sass-lang.com
+[travel-log-api]: https://comem-travel-log-api.herokuapp.com
