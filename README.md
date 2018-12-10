@@ -529,9 +529,9 @@ Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/l
 <form (submit)='onSubmit($event)'>
   <ion-list>
 
-    <!-- Name input -->
+    <!-- Username input -->
     <ion-item>
-      <ion-label floating>Name</ion-label>
+      <ion-label floating>Username</ion-label>
       <ion-input type='text' name='username'
                  #usernameInput='ngModel' [(ngModel)]='authRequest.username' required></ion-input>
     </ion-item>
