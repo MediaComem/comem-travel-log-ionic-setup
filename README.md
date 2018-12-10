@@ -82,7 +82,7 @@ This helps you think in terms of the whole app and of the relationships between 
 
 As you can see, we propose to use a tab view with 3 screens, and an additional 4th screen accessible from the trip list:
 
-* The new trip tab.
+* The create trip tab.
 * The places map tab.
 * The trip list tab.
   * A trip details page.
