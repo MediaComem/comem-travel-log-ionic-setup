@@ -1205,6 +1205,34 @@ export class AuthProvider {
 
 
 
+### Initializers are not allowed in ambient contexts
+
+You might see the following error in your console or browser:
+
+```
+[app-scripts] [16:01:24]  typescript: node_modules/@asymmetrik/ngx-leaflet/dist/leaflet/core/leaflet.directive.d.ts, line: 6
+[app-scripts]             Initializers are not allowed in ambient contexts.
+```
+
+This is due to the fact that at the time of writing, the latest version of the `ngx-leaflet` library is based on version 7 of Angular,
+while Ionic uses version 5 of Angular. The `ngx-leaflet` library depends on a new TypeScript feature available in Angular 7 but not in Angular 5, causing this error.
+
+You can solve the problem by downgrading the `ngx-leaflet` library to the previous version in `package.json`:
+
+```json
+  ...
+  "dependencies": {
+    ...
+    "@asymmetrik/ngx-leaflet": "^4.0.0",
+    ...
+  },
+  ...
+```
+
+Then run `npm install` in the project's directory to install that older version.
+
+
+
 ### `ionic serve` crashes with an `ECONNRESET` error when saving a file
 
 The output of `ionic serve` after saving a file:
