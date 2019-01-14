@@ -36,7 +36,9 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
   - [Add the configuration file to your `.gitignore` file](#add-the-configuration-file-to-your-gitignore-file)
   - [Feed the configuration to Angular](#feed-the-configuration-to-angular)
 - [Troubleshooting](#troubleshooting)
+  - [Initializers are not allowed in ambient contexts](#initializers-are-not-allowed-in-ambient-contexts)
   - [`ionic serve` crashes with an `ECONNRESET` error when saving a file](#ionic-serve-crashes-with-an-econnreset-error-when-saving-a-file)
+  - [Cordova doesn't want JDK 1.9](#cordova-doesnt-want-jdk-19)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
