@@ -96,19 +96,19 @@ Make sure you have Ionic and Cordova installed:
 $> ionic -v
 5.4.5
 ```
-If you have an error when running the above command, execute:
+> If you have an error when running the above command, execute:
+>  ```bash
+>  $> npm install -g ionic@latest
+>  ```
 
-```bash
-$> npm install -g ionic@latest
-```
 ```
 $> cordova -v
 9.0.0
 ```
-If you have an error when running the above command, execute:
-```bash
-$> npm install -g cordova@latest
-```
+> If you have an error when running the above command, execute:
+> ```bash
+> $> npm install -g cordova@latest
+> ```
 
 Go in the directory where you want the app project to be located, then generate a blank Ionic app with the following command:
 
@@ -1045,46 +1045,58 @@ Let's find a way to centralize this configuration.
 
 ### Environment files
 
-There is already a mechanism in place to handle those environment-specific values.
+There is already a mechanism in place to handle those environment-specific values with Angular.
 
 In `src/environments`, you should find two files: `environment.ts` and `environment.prod.ts`.
 
-The purpose of those file is to hold the configuration values of a specific environment, so that you could easily swap one config from another to deploy your app in different environment ("development", "test", "staging", "production", etc).
+The purpose of those file is to hold the configuration values of a specific environment, so that you could easily swap one config with another to deploy your app in different environment ("development", "test", "staging", "production", etc).
 
-The first file, `environment.ts` is the file which you should import in Angular to load environment specific values (we'll see how later on). **This is the one that we will commit**.
+The first file, `environment.ts` is the default file and the one that should hold the configuration for your development environment. It should **not be committed** as your development config might be different than the one of your fellows developers.
 
-The other one, `environment.prod.ts`, is the file that will contain production specific values. **It should not be commited**. Alas... it already has. It's not a problem since the content is pretty empty, but we need to untrack this file.
+The other one, `environment.prod.ts`, is the file that will contain production specific values. **It should not be commited** at all.
 
-To do so, simply delete it from your filesystem (we'll recreate it later), then commit this deletion in git:
+Alas, both those files have already been commited when the project was set up... It's not a huge problem as both those files don't contain anything sensitive.
+
+You need to tell git to untrack them, though, so delete both of them from your filesystem (we'll recreate them later), then commit those deletions in git:
 
 ```bash
-$> rm src/environments/environment.prod.ts
-$> git add src/environments/environment.prod.ts
-$> git commit -m "Removing production environment file from git"
+$> rm src/environments/*
+$> git add src/environments/*
+$> git commit -m "Remove environment files from git"
 ```
 
-The `environment.ts` file is a placeholder which should **NOT** contain the actual configuration.
-Its purpose is to explain to other developers of the project what their own environment file should contains and fill in the actual values.
-
-Replace the entire content of `environment.ts` with this:
+Now, create a placeholder file whose purpose will be to explain to other developers of the project what their own environment file should contains so they could fill in the actual values.
+Create the `environment.sample.ts` file in `src/environments`, with this content:
 
 ```ts
-// Copy this file to environment.dev.ts and fill in appropriate values.
+// Copy this file to environment.ts and fill in appropriate values.
 export const environment = {
   production: false,
   apiUrl: 'https://example.com/api'
 };
 ```
 
+> The `environment.sample.ts` file is a placeholder and should **NOT** contain the actual configuration.
+
 <a href="#top">↑ Back to top</a>
 
 ### Create the actual configuration file
 
-You can now create the actual `src/environments/environment.dev.ts` configuration file (by copying the `environment.ts` file), this time containing the actual configuration values, at least for development:
+With this placeholder file, you can now create the actual `src/environments/environment.ts` configuration file (by copying the `environment.sample.ts` file), this time containing the actual configuration values, at least for development:
 
 ```ts
-export const config = {
+export const environment = {
   production: false,
+  apiUrl: 'https://comem-travel-log-api.herokuapp.com/api'
+}
+```
+
+While we're at it, let's also create the `environment.prod.ts` file, used for production builds, with this content:
+
+```ts
+export const environment = {
+  production: true,
+  // That's the same api Url in our case, but in real project, it would certainly be different
   apiUrl: 'https://comem-travel-log-api.herokuapp.com/api'
 }
 ```
@@ -1093,104 +1105,34 @@ export const config = {
 
 ### Add the environment files to your `.gitignore` file
 
-Of course, you **don't want to commit `environment.dev.ts`**, but you do want to commit `environment.ts`
+Of course, you **don't want to commit neither `environment.ts` nor `environment.prod.ts`**, but you do want to commit `environment.sample.ts`
 so that anyone who clones your project can see what configuration options are required.
-Add this line at the bottom of your `.gitignore` file:
+Add these lines at the bottom of your `.gitignore` file:
 
 ```
 # Environment files
-src/environments/environment.*.ts
+src/environments/*
+!src/environments/environment.sample.ts
 ```
 
-This line ignore all the files that are named `environment.<something>.ts`, whatever the `<something>` value is. So `environment.dev.ts` will be ignored, along with, e.g. `environment.prod.ts` or `environment.test.ts`. But `environment.ts` does not match the excepted pattern and, as such, will not tracked by git.
-
-You can try this by recreating the `environment.prod.ts` file that we deleted earlier. Simply copy again `environment.ts`, rename it and replace its content with:
-
-```ts
-export const environment = {
-  production: true,
-  apiUrl: 'https://production/api/url'
-};
-```
-
-The new file should **not** ne tracked by git:
-
-```bash
-$> git status
-```
+The first line tells git to not track any file in the `src/environments` folder... except for the specific `environment.sample.ts` file (this is the second line).
 
 You now have your uncommitted environment files!
 
-### Configure angular to use environment files
+### When are the environment files used
 
-Now that we do have environment specific files, we have to tell Angular how to use them.
+The `environment.ts` file is loaded when you execute the `ionic serve` command.
 
-Since its 6.x version, Angular CLI uses a file called `angular.json` to manage building and serving Angular apps.
+> If you have any `ionic serve` command running, kill it and start it again to take the changes into account.
 
-There's **A LOT** of things going on in this file. What's interesting to us are the `projects.app.architect.build.configurations` object, and the `projects.app.architect.serve.configurations` object.
+When executing the same command with the `--prod` flag:
 
-The first one, `projects.app.architect.build.configurations`, is where you would define each build configuration for you app. There should already be one configuration named `production` in this array, which defines how angular builds your app for a `production` environment. This config should have a `fileReplacements` property:
-
-```json
-"fileReplacements": [
-  {
-    "replace": "src/environments/environment.ts",
-    "with": "src/environments/environment.prod.ts"
-  }
-],
+```bash
+$> ionic serve --prod
 ```
-Here, when Angular builds your app for production, it will `replace` the content of the `src/environments/environment.ts` file `with` the content of the `src/environments/environment.prod.ts` file.
+Ionic replaces the content of `environment.ts` file by the content from `environment.prod.ts`, in the build (**it does not replace the content of the actual file, thankfully**).
 
-> This will not overwrite the files on your filesystem.
-
-We need to add a similar configuration for our local development environment, but this time, it's the content of `environment.dev.ts` that should replaces the placeholder content of `environment.ts`. Add a new `dev` property to `projects.app.architect.build.configurations`:
-
-```json
-"dev": {
-  "fileReplacements": [
-    {
-      "replace": "src/environments/environment.ts",
-      "with": "src/environments/environment.dev.ts"
-    }
-  ]
-}
-```
-Then, we need to use this new configuration when serving our app with `ng serve`. Add a new property to `projects.app.architect.serve.configurations`:
-
-```json
-"dev": {
-  "browserTarget": "app:build:dev"
-}
-```
-The value of `browserTarget` tells Angular to serve to the browser the result of `app:build:dev` which will use the build configuration we created just before.
-
-Finally, open your `package.json` file and update the value of the `scripts.start` property:
-
-```json
-{
-  ...,
-  "scripts": {
-    ...,
-    "start": "ng serve -c dev",
-    ...
-  }
-}
-```
-
-Stops your `npm start` script, if it was already running, and run it again, so that your `environment.dev.ts` file content replaces the `environment.ts` content.
-
-While your at it, you could add a new script that would build your app with your production environment:
-
-```json
-{
-  ...,
-  "scripts": {
-    ...,
-    "build:prod": "ng build -c production",
-    ...
-  }
-}
-```
+This way, whatever the environment your app is running on, `environment.ts` is **always the file holding the adequate configuration!**
 
 <a href="#top">↑ Back to top</a>
 
@@ -1200,9 +1142,7 @@ Now that you have your configuration files, you want to use its values in code.
 
 Since it's a TypeScript file like any other, you simply have to import and use it.
 
-Remember that, due to the file content replacement, you **only ever need to import `environment.ts` in your code!**.
-
-> The content of the file will change depending on which environment your app runs.
+> **Remember that you only ever have to import `environment.ts` in your code**, as it's content will change depending on the environment.
 
 ```ts
 // Other imports...
