@@ -28,12 +28,12 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
   - [Use the authentication service to protect access to the home page](#use-the-authentication-service-to-protect-access-to-the-home-page)
   - [Storing the authentication credentials](#storing-the-authentication-credentials)
   - [Log out](#log-out)
-  - [Authentication observable magic](#authentication-observable-magic)
   - [Configuring an HTTP interceptor](#configuring-an-http-interceptor)
 - [Multi-environment & sensitive configuration](#multi-environment--sensitive-configuration)
-  - [Create a sample configuration file](#create-a-sample-configuration-file)
+  - [Environment files](#environment-files)
   - [Create the actual configuration file](#create-the-actual-configuration-file)
-  - [Add the configuration file to your `.gitignore` file](#add-the-configuration-file-to-your-gitignore-file)
+  - [Add the environment files to your `.gitignore` file](#add-the-environment-files-to-your-gitignore-file)
+  - [Configure angular to use environment files](#configure-angular-to-use-environment-files)
   - [Feed the configuration to Angular](#feed-the-configuration-to-angular)
 - [Troubleshooting](#troubleshooting)
   - [Initializers are not allowed in ambient contexts](#initializers-are-not-allowed-in-ambient-contexts)
@@ -42,20 +42,15 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-
-
-
 ## Prerequisites
 
-These instructions assume that you are using the Travel Log API based on one of the suggestions of the previous [Web Services course](https://github.com/MediaComem/comem-webserv),
+These instructions assume that you are using the Travel Log API based on one of the suggestions of the previous [Web-Oriented Architecture](https://github.com/MediaComem/comem-archioweb),
 and that you are familiar with the [documentation of the reference API](https://comem-travel-log-api.herokuapp.com).
 
 You will need to have [Node.js](https://nodejs.org) installed.
-The latest LTS (Long Term Support) version is recommended (v8.9.4 at the time of writing these instructions).
+The latest LTS (Long Term Support) version is recommended (v12.13.0 at the time of writing these instructions).
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ## Features
 
@@ -70,9 +65,7 @@ The proposed app should users to do the following:
 
 The following sections describe a proposed UI mockup of the app and steps to set up a skeleton implementation.
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ## Design the user interface
 
@@ -91,31 +84,50 @@ As you can see, we propose to use a tab view with 3 screens, and an additional 4
 
 Now that we know what we want, we can start setting up the app!
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ## Set up the application
-
-
 
 ### Create a blank Ionic app and make it a repository
 
 Make sure you have Ionic and Cordova installed:
 
 ```bash
-$> npm install -g ionic cordova
+$> ionic -v
+5.4.5
+```
+If you have an error when running the above command, execute:
+
+```bash
+$> npm install -g ionic@latest
+```
+```
+$> cordova -v
+9.0.0
+```
+If you have an error when running the above command, execute:
+```bash
+$> npm install -g cordova@latest
 ```
 
-Go in the directory where you want the app, then generate a blank Ionic app with the following command:
+Go in the directory where you want the app project to be located, then generate a blank Ionic app with the following command:
 
 ```bash
 $> cd /path/to/projects
 $> ionic start travel-log blank
-
-? Would you like to integrate your new app with Cordova to target native iOS and Android? Yes
-? Install the free Ionic Pro SDK and connect your app? No
 ```
+When asked, to chose a **framework**, select **Angular**
+```bash
+Pick a framework!
+
+Please select the JavaScript framework to use for your new app. To bypass this prompt next time, supply a value for the
+--type option.
+
+? Framework: (Use arrow keys)
+> Angular | https://angular.io
+  React   | https://reactjs.org
+```
+Then wait for the install to proceed... ⏳
 
 Go into the app directory. The `ionic start` command should have already initialized a Git repository:
 
@@ -124,14 +136,12 @@ $> cd travel-log
 $> git log
 commit 2a3f83f14ae2a82d00cb2b2960dda1c1e0b0a432 (HEAD -> master)
 Author: John Doe <john.doe@example.com>
-Date:   Mon Dec 18 10:00:01 2017 +0100
+Date:   Mon Nov 4 14:25:29 2019 +0100
 
     Initial commit
 ```
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Serve the application locally
 
@@ -145,9 +155,7 @@ You should see something like this:
 
 ![Serving the blank app](setup/blank-app-serve.png)
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ## Set up the navigation structure
 
@@ -161,156 +169,165 @@ As defined in our UI design, we want the following 4 screens:
 Let's start by setting up the 3 tabs.
 We will use Ionic's [Tabs][ionic-tabs] component.
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Create the pages
 
 Each page will be an [Angular component][angular-component].
-Ionic has a `generate` command that can automatically set up the files we need to create each page's component:
+Ionic has a `generate` command that can automatically set up the files we need to create each page's component.
+
+The existing `Home` page will contains the Tab layout, and each tab page is therefor a subpage of `Home`.
 
 ```bash
-$> ionic generate page --no-module CreateTrip
-$> ionic generate page --no-module PlacesMap
-$> ionic generate page --no-module TripList
+$> ionic generate page home/CreateTrip --module=home/home.module.ts
+$> ionic generate page home/PlacesMap --module=home/home.module.ts
+$> ionic generate page home/TripList --module=home/home.module.ts
 ```
+> Not setting the `--module` param will add your new page to the main navigation array, which is not what we want.
+
+> Use the up arrow key to get the last executed command. This will prevent you typing the same line three times
 
 This will generate the following files:
 
 ```
-src/pages/create-trip/create-trip.html
-src/pages/create-trip/create-trip.scss
-src/pages/create-trip/create-trip.ts
-src/pages/places-map/places-map.html
-src/pages/places-map/places-map.scss
-src/pages/places-map/places-map.ts
-src/pages/trip-list/trip-list.html
-src/pages/trip-list/trip-list.scss
-src/pages/trip-list/trip-list.ts
+src/app/home/create-trip/create-trip.module.ts
+src/app/home/create-trip/create-trip.page.html
+src/app/home/create-trip/create-trip.page.spec.ts
+src/app/home/create-trip/create-trip.page.ts
+src/app/home/create-trip/create-trip.page.scss
+src/app/home/places-map/places-map.module.ts
+src/app/home/places-map/places-map.page.html
+src/app/home/places-map/places-map.page.spec.ts
+src/app/home/places-map/places-map.page.ts
+src/app/home/places-map/places-map.page.scss
+src/app/home/trip-list/trip-list.module.ts
+src/app/home/trip-list/trip-list.page.html
+src/app/home/trip-list/trip-list.page.spec.ts
+src/app/home/trip-list/trip-list.page.ts
+src/app/home/trip-list/trip-list.page.scss
 ```
 
 For each page, we have:
 
+* A module declaration.
 * An HTML template.
 * A [Sass/SCSS][sass] stylesheet.
 * An Angular component.
+* A test suite with a default test.
 
 Now update the HTML template for each page and add some content within the `<ion-content>` tag.
-For example, in `src/pages/create-trip/create-trip.html`:
+For example, in `src/app/home/create-trip/create-trip.page.html`:
 
 ```html
-<ion-content padding>
+<ion-content class="ion-padding">
   Let's create a trip.
 </ion-content>
 ```
-
-
 
 ### Update the app to use the pages
 
 Now that the pages are ready, we need to display them.
 
-First, Angular and Ionic need to be aware of your new components.
-You must **declare** them in 2 places in your main Angular module in `src/app/app.module.ts`:
+First, **add the tab pages in the `Home` router** (`src/app/home/home.module.ts`) so that we will be able to navigate to them:
 
-* Add them to the `declarations` array to register the components with Angular.
-* Add them to the `entryComponents` array so that Ionic is able to inject them dynamically (e.g. when switching tabs).
+```ts
+// ...imports omitted for brevity
 
-```js
-// Other imports...
-// TODO: import the new components.
-import { CreateTripPage } from '../pages/create-trip/create-trip';
-import { TripListPage } from '../pages/trip-list/trip-list';
-import { PlacesMapPage } from '../pages/places-map/places-map';
+// TODO: move the routes declaration outside the NgModule declaration
+const routes: Routes = [
+  {
+    path: '', component: HomePage, children: [
+      { path: '', redirectTo: 'map'}, // This defines the default tab
+      {
+        path: 'new',
+        loadChildren: () => import('./create-trip/create-trip.module').then(m => m.CreateTripPageModule)
+      },
+      {
+        path: 'map',
+        loadChildren: () => import('./places-map/places-map.module').then(m => m.PlacesMapPageModule)
+      },
+      {
+        path: 'list',
+        loadChildren: () => import('./trip-list/trip-list.module').then(m => m.TripListPageModule)
+      },
+    ]
+  }
+];
 
 @NgModule({
-  declarations: [
-    MyApp,
-    HomePage,
-    CreateTripPage, // TODO: add the components to "declarations".
-    TripListPage,
-    PlacesMapPage
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    RouterModule.forChild(routes) // TODO: configure the router with the above constant
   ],
-  imports: [ /* ... */ ],
-  bootstrap: [ /* ... */ ],
-  entryComponents: [
-    MyApp,
-    HomePage,
-    CreateTripPage, // TODO: add the components to "entryComponents".
-    TripListPage,
-    PlacesMapPage
-  ],
-  providers: [ /* ... */ ]
+  declarations: [ HomePage ]
 })
-export class AppModule {}
+export class HomePageModule { }
 ```
+> Note how each page is not directly importted to the `Home` module ; instead, we're using **Lazy loading** to load each page's module (which in turn will load the proper component)
 
-Second, **update the home page's component** (`src/pages/home/home.ts`) to include the list of tabs we want:
+Second, **update the home page's component** (`src/app/home/home.page.ts`) to include the list of tabs we want:
 
-```js
-// Other imports...
-// TODO: import the new components.
-import { CreateTripPage } from '../create-trip/create-trip';
-import { PlacesMapPage } from '../places-map/places-map';
-import { TripListPage } from '../trip-list/trip-list';
+```ts
+import { Component } from '@angular/core';
 
 // TODO: add an interface to represent a tab.
 export interface HomePageTab {
-  title: string;
-  icon: string;
-  component: Function;
+  title: string; // The title of the tab in the tab bar
+  icon: string; // The icon of the tab in the tab bar
+  path: string; // The route's path that displays the tab
 }
 
 @Component({
-  selector: 'page-home',
-  templateUrl: 'home.html'
+  selector: 'app-home',
+  templateUrl: 'home.page.html',
+  styleUrls: ['home.page.scss'],
 })
 export class HomePage {
 
-  // TODO: declare a list of tabs to the component.
   tabs: HomePageTab[];
 
-  constructor(public navCtrl: NavController) {
-    // TODO: define some tabs.
+  constructor() {
     this.tabs = [
-      { title: 'New Trip', icon: 'add', component: CreateTripPage },
-      { title: 'Places Map', icon: 'map', component: PlacesMapPage },
-      { title: 'Trip List', icon: 'list', component: TripListPage }
+      { title: 'New Trip', icon: 'add', path: 'new' },
+      { title: 'Places Map', icon: 'map', path: 'map'},
+      { title: 'Trip List', icon: 'list', path: 'list'}
     ];
   }
 
 }
 ```
+> Be sure that the value of the tab's `path` property matches the corresponding route in the `home.module.ts` file.
 
-Third, we will **replace the entire contents of the home page's template** (`src/pages/home/home.html`) to use Ionic's [Tabs component][ionic-tabs].
+Third, we will **replace the entire contents of the home page's template** (`src/app/home/home.page.html`) to use Ionic's [Tabs component][ionic-tabs].
 
 Angular's `ngFor` directive allows us to iterate over the `tabs` array we declared in the home page's component,
-and to put one `<ion-tab>` tag in the page for each component:
+and to put one `<ion-tab-button>` tag in the tab bar for each component:
 
 ```html
 <ion-tabs>
-  <ion-tab *ngFor='let tab of tabs'
-           [tabTitle]='tab.title' [tabIcon]='tab.icon' [root]='tab.component'>
-  </ion-tab>
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button [tab]="tab.path" *ngFor="let tab of tabs">
+      <ion-icon [name]="tab.icon"></ion-icon>
+      <ion-label>{{ tab.title }}</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
 </ion-tabs>
 ```
-
 You should now be able to navigate between the 3 tabs!
 
-
+![Serving the blank app](setup/tabs-setup.png)
 
 ## Set up security
 
-To use the app, a user should identify him- or herself.
+To use the app, a user should identify themselves.
 You will add a login screen that the user must go through before accessing the other screens.
 Authentication will be performed by the [Travel Log API][travel-log-api].
 
 The API requires a bearer token be sent to identify the user when making requests on some resources (e.g. when creating trips).
 This token must be sent in the `Authorization` header for all requests requiring identification.
 Once login/logout is implemented, you will also set up an HTTP interceptor to automatically add this header to every request.
-
-
 
 ### Check the documentation of the API's authentication resource
 
@@ -351,16 +368,14 @@ Content-Type: application/json
 
 You will need to perform this request and retrieve that information when the user logs in.
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Create model classes
 
 Let's create a few classes to use as models when communicating with the API.
 That way we will benefit from TypeScript's typing when accessing model properties.
 
-Create a `src/models/user.ts` file which exports a model representing a user of the API:
+Create a `src/app/models/user.ts` file which exports a model representing a user of the API:
 
 ```ts
 export class User {
@@ -373,7 +388,7 @@ export class User {
 }
 ```
 
-Create a `src/models/auth-request.ts` file which exports a model representing a request to the authentication resource:
+Create a `src/app/models/auth-request.ts` file which exports a model representing a request to the authentication resource:
 
 ```ts
 export class AuthRequest {
@@ -382,7 +397,7 @@ export class AuthRequest {
 }
 ```
 
-Create a `src/models/auth-response.ts` file which exports a model representing a successful response from the authentication resource:
+Create a `src/app/models/auth-response.ts` file which exports a model representing a successful response from the authentication resource:
 
 ```ts
 import { User } from './user';
@@ -393,61 +408,50 @@ export class AuthResponse {
 }
 ```
 
-
-
 ### Create an authentication service
 
 Let's generate a reusable, injectable service to manage authentication:
 
 ```bash
-$> ionic generate provider Auth
+$> ionic generate service auth/Auth
 ```
-
-Register the new provider in the module's `providers` array in `src/app/app.module.ts`.
-You also need to add Angular's `HttpClientModule` to the module's `imports` array because the provider uses `HttpClient`:
+Since our new service will make Http requests, we need to imports the `HttpClientModule` in our app. Do so in the `src/app/app.module.ts` file:
 
 ```ts
-// Other imports...
-// TODO: import Angular's HttpClientModule and the new provider.
+// ...Other imports
+// TODO: import Angular's httpClientModule
 import { HttpClientModule } from '@angular/common/http';
-import { AuthProvider } from '../providers/auth/auth';
 
 @NgModule({
-  declarations: [ /* ... */ ],
+  declarations: [ AppComponent ],
+  entryComponents: [],
   imports: [
-    // ...
-    // TODO: import Angular's HttpClientModule.
-    HttpClientModule
+    /* ... */
+    HttpClientModule // TODO: import Angular's httpClientModule
   ],
-  bootstrap: [ /* ... */ ],
-  entryComponents: [ /* ... */],
-  providers: [
-    // ...
-    // TODO: register the new provider.
-    AuthProvider
-  ]
+  providers: [/* ... */],
+  bootstrap: [ AppComponent ]
 })
-export class AppModule {}
+export class AppModule { }
 ```
 
-You can replace the contents of the generated `srv/providers/auth/auth.ts` file with the following code:
+You can replace the contents of the generated `src/app/auth/auth.service.ts` file with the following code:
 
 ```ts
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Response } from '@angular/http';
-import { Observable, ReplaySubject } from 'rxjs/Rx';
+import { Observable, ReplaySubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { AuthRequest } from '../../models/auth-request';
-import { AuthResponse } from '../../models/auth-response';
-import { User } from '../../models/user';
+import { AuthResponse } from '../models/auth-response';
+import { User } from '../models/user';
+import { AuthRequest } from '../models/auth-request';
 
 /**
  * Authentication service for login/logout.
  */
-@Injectable()
-export class AuthProvider {
+@Injectable({ providedIn: 'root' })
+export class AuthService {
 
   private auth$: Observable<AuthResponse>;
   private authSource: ReplaySubject<AuthResponse>;
@@ -459,7 +463,7 @@ export class AuthProvider {
   }
 
   isAuthenticated(): Observable<boolean> {
-    return this.auth$.pipe(map(auth => !!auth));
+    return this.auth$.pipe(map(auth => Boolean(auth)));
   }
 
   getUser(): Observable<User> {
@@ -489,105 +493,73 @@ export class AuthProvider {
 
 }
 ```
-
-
-
 ### Create the login screen
 
-Generate a login page component:
+Generate a login page component to be added to the main `app-routing.module.ts` file:
 
 ```bash
-$> ionic generate page --no-module Login
+$> ionic generate page Login
 ```
 
-Add this new component to the module's `declarations` and `entryComponents` arrays in `src/app/app.module.ts`:
-
-```ts
-// Other imports...
-// TODO: import the new component.
-import { LoginPage } from '../pages/login/login';
-
-@NgModule({
-  declarations: [
-    // ...
-    // TODO: add the component to the declarations.
-    LoginPage
-  ],
-  imports: [ /* ... */ ],
-  bootstrap: [ /* ... */ ],
-  entryComponents: [
-    // ...
-    // TODO: add the component to the entry components.
-    LoginPage
-  ],
-  providers: [ /* ... */ ]
-})
-export class AppModule {}
-```
-
-Add the following HTML form inside the `<ion-content>` tag of `src/pages/login/login.html`:
+Add the following HTML form inside the `<ion-content>` tag of `src/app/login/login.page.html`:
 
 ```html
-<form (submit)='onSubmit($event)'>
+<form #loginForm="ngForm" (submit)="onSubmit(loginForm)">
   <ion-list>
 
     <!-- Username input -->
     <ion-item>
-      <ion-label floating>Username</ion-label>
-      <ion-input type='text' name='username'
-                 #usernameInput='ngModel' [(ngModel)]='authRequest.username' required></ion-input>
+      <ion-label position="floating">Username</ion-label>
+      <ion-input inputmode="text" #username="ngModel" required="true" name="username"
+        [(ngModel)]="authRequest.username"></ion-input>
     </ion-item>
 
     <!-- Error message displayed if the username is invalid -->
-    <ion-item *ngIf='usernameInput.invalid && usernameInput.dirty' no-lines>
-      <p ion-text color='danger'>Username is required.</p>
+    <ion-item lines="none" *ngIf="username.invalid && username.touched">
+      <ion-text color='danger'>Username is required.</ion-text>
     </ion-item>
 
     <!-- Password input -->
     <ion-item>
-      <ion-label floating>Password</ion-label>
-      <ion-input type='password' name='password'
-                 #passwordInput='ngModel' [(ngModel)]='authRequest.password' required></ion-input>
+      <ion-label position="floating">Password</ion-label>
+      <ion-input inputmode="text" #password="ngModel" required="true" type="password" name="password"
+        [(ngModel)]="authRequest.password"></ion-input>
     </ion-item>
 
     <!-- Error message displayed if the password is invalid -->
-    <ion-item *ngIf='passwordInput.invalid && passwordInput.dirty' no-lines>
-      <p ion-text color='danger'>Password is required.</p>
+    <ion-item lines="none" *ngIf="password.invalid && password.touched">
+      <ion-text color='danger'>Password is required.</ion-text>
     </ion-item>
 
   </ion-list>
 
-  <div padding>
+  <div class="ion-padding">
 
     <!-- Submit button -->
-    <button type='submit' [disabled]='form.invalid' ion-button block>Log in</button>
+    <ion-button type="submit" expand="block" [disabled]="loginForm.invalid">Log in</ion-button>
 
     <!-- Error message displayed if the login failed -->
-    <p *ngIf='loginError' ion-text color='danger'>Username or password is invalid.</p>
+    <ion-text color='danger' *ngIf="loginError">Username or password is invalid.</ion-text>
 
   </div>
 </form>
 ```
 
-Update `src/pages/login/login.ts` as follows:
+Update `src/app/login/login.page.ts` as follows:
 
 ```ts
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NavController, NavParams } from 'ionic-angular';
+import { Router } from '@angular/router';
 
-import { AuthRequest } from '../../models/auth-request';
-import { AuthProvider } from '../../providers/auth/auth';
-import { HomePage } from '../home/home';
+import { AuthService } from '../auth/auth.service';
+import { AuthRequest } from '../models/auth-request';
 
 /**
  * Login page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
  */
 @Component({
-  templateUrl: 'login.html'
+  templateUrl: 'login.page.html'
 })
 export class LoginPage {
 
@@ -603,26 +575,20 @@ export class LoginPage {
    */
   loginError: boolean;
 
-  /**
-   * The login form.
-   */
-  @ViewChild(NgForm)
-  form: NgForm;
-
-  constructor(private auth: AuthProvider, private navCtrl: NavController) {
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) {
     this.authRequest = new AuthRequest();
   }
 
   /**
    * Called when the login form is submitted.
    */
-  onSubmit($event) {
-
-    // Prevent default HTML form behavior.
-    $event.preventDefault();
+  onSubmit(form: NgForm) {
 
     // Do not do anything if the form is invalid.
-    if (this.form.invalid) {
+    if (form.invalid) {
       return;
     }
 
@@ -630,60 +596,87 @@ export class LoginPage {
     this.loginError = false;
 
     // Perform the authentication request to the API.
-    this.auth.logIn(this.authRequest).subscribe(undefined, err => {
-      this.loginError = true;
-      console.warn(`Authentication failed: ${err.message}`);
+    this.auth.logIn(this.authRequest).subscribe({
+      next: () => {
+        this.router.navigateByUrl('/home');
+      },
+      error: err => {
+        this.loginError = true;
+        console.warn(`Authentication failed: ${err.message}`);
+      }
     });
   }
 }
+
 ```
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Use the authentication service to protect access to the home page
 
-Add the following imports to `src/app/app.component.ts`:
+Now that we have a service to manage authentication and a working page for users to log in, we need to make sure that unauthenticated user can not access restricted pages and are instead redirected to the login page.
 
-```ts
-import { LoginPage } from '../pages/login/login';
-import { AuthProvider } from '../providers/auth/auth';
+We will use an [Angular Guard][angular-guard] to do this.
+
+```bash
+$> ionic generate guard auth/Auth
 ```
+> When asked what interface you'd like to implement, select only the `CanActivate` interface.
 
-Make sure that it doesn't have a default home page any more:
+Open the `src/app/auth/auth.guard.ts` file and **replace all its content** with:
 
 ```ts
-// ...
-export class MyApp {
-  rootPage: any;
-  // ...
+import { Injectable } from '@angular/core';
+import { CanActivate, Router, UrlTree } from '@angular/router';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
+import { map } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) { }
+
+  canActivate(): Observable<boolean | UrlTree> {
+    return this.auth.isAuthenticated().pipe(map(isAuthenticated => {
+      return isAuthenticated ? true : this.router.parseUrl('/login');
+    }));
+  }
+
 }
 ```
 
-Update the component's constructor as follows:
+To use this guard, open the `src/app/app-routing.module.ts` file and add a new `canActivate` property to the `'home'` route:
 
 ```ts
-constructor(
-  // TODO: inject the authentication provider.
-  private auth: AuthProvider,
-  platform: Platform,
-  statusBar: StatusBar,
-  splashScreen: SplashScreen
-) {
+// ...Other imports
+// TODO: import the AuthGuard
+import { AuthGuard } from './auth/auth.guard';
 
-  // TODO: redirect the user to the login page if not authenticated.
-  // Direct the user to the correct page depending on whether he or she is logged in.
-  this.auth.isAuthenticated().subscribe(authenticated => {
-    if (authenticated) {
-      this.rootPage = HomePage;
-    } else {
-      this.rootPage = LoginPage;
-    }
-  });
+const routes: Routes = [
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  {
+    path: 'home',
+    loadChildren: () => import('./home/home.module').then(m => m.HomePageModule),
+    // TODO: Add the guard to the canActivate array of this route
+    canActivate: [ AuthGuard ]
+  },
+  {
+    path: 'login',
+    loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule)
+  },
+];
 
-  // ...
-}
+@NgModule({
+  imports: [/* ... */],
+  exports: [ RouterModule ]
+})
+export class AppRoutingModule { }
 ```
 
 The login screen is ready!
@@ -692,13 +685,12 @@ If you reload your app, you should see that you are automatically redirected to 
 You can now log in.
 You should be able to use the username `jdoe` and the password `test` with the Travel Log API's standard dataset.
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Storing the authentication credentials
 
 Now you can log in, but there's a little problem.
+
 Every time the app is reloaded, you lose all data so you have to log back in.
 This is particularly annoying for local development since the browser is automatically refreshed every time you change the code.
 
@@ -706,7 +698,12 @@ You need to use more persistent storage for the security credentials, i.e. the a
 Ionic provides a [storage module](https://ionicframework.com/docs/storage/) which will automatically select an appropriate storage method for your platform.
 It will use [SQLite](https://sqlite.org) on phones when available; for web platforms it will use [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), [WebSQL](https://www.w3.org/TR/webdatabase/) or [Local Storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
 
-To use the Ionic storage module, you must import it into your application's module in `src/app/app.module.ts`:
+To use the Ionic storage module, you must first install it:
+
+```bash
+$> npm i @ionic/storage
+```
+Then import it into your application's module in `src/app/app.module.ts`:
 
 ```ts
 // Other imports...
@@ -725,11 +722,12 @@ import { IonicStorageModule } from '@ionic/storage';
 export class AppModule {}
 ```
 
-Now you can import the `Storage` provider in `AuthProvider` in `src/providers/auth/auth.ts`:
+Now you can import the `Storage` provider in `AuthService` in `src/app/auth/auth.service.ts`:
 
 ```ts
 // Other imports...
-// TODO: import RxJS's delayWhen operator and Ionic's storage provider.
+// TODO: import RxJS's from function, delayWhen operator and Ionic's storage provider.
+import { Observable, ReplaySubject, from } from 'rxjs';
 import { delayWhen, map } from 'rxjs/operators';
 import { Storage } from '@ionic/storage';
 ```
@@ -744,7 +742,7 @@ Add a method to persist the authentication information using the storage module:
 
 ```ts
 private saveAuth(auth: AuthResponse): Observable<void> {
-  return Observable.fromPromise(this.storage.set('auth', auth));
+  return from(this.storage.set('auth', auth));
 }
 ```
 
@@ -752,7 +750,7 @@ The storage module returns Promises, but we'll be plugging this new function int
 so we convert the Promise to an Observable before returning it.
 
 You can now update the `logIn()` method to persist the API's authentication response with the new `saveAuth()` method.
-To do that, use RxJS's [`delayWhen`][rxjs-delay-when] operator, which allows us to delay an Observable stream until another Observable emits
+To do that, use RxJS's [`delayWhen`][rxjs-delay-when] operator, which allows us to delay an Observable stream (in this case, the one that indicates our user is authenticated) until another Observable emits
 (in this case, the one that saves the authentication response):
 
 ```ts
@@ -776,7 +774,7 @@ logIn(authRequest: AuthRequest): Observable<User> {
 When testing in the browser, you should already see the object being stored in IndexedDB (the default storage if using Chrome).
 
 You must now load it when the app starts.
-You can do that in the constructor of `AuthProvider`.
+You can do that in the constructor of `AuthService`.
 
 Since the storage provider's `get` method returns a promise,
 you can only use the result in a `.then` asynchronous callback:
@@ -808,28 +806,28 @@ logOut() {
 }
 ```
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Log out
 
 You should also add a UI component to allow the user to log out.
 As an example, you will display a logout button in the trip creation screen.
 
-Add an `<ion-buttons>` tag with a logout button in `src/pages/create-trip/create-trip.html`:
+Add an `<ion-buttons>` tag with a logout button in `src/app/home/create-trip/create-trip.page.html`:
 
 ```html
-<ion-navbar>
-  <ion-title>CreateTrip</ion-title>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>CreateTrip</ion-title>
 
-  <!-- Logout button -->
-  <ion-buttons end>
-    <button ion-button icon-only (click)='logOut()'>
-      <ion-icon name='log-out'></ion-icon>
-    </button>
-  </ion-buttons>
-</ion-navbar>
+    <!-- Logout button -->
+    <ion-buttons slot="end">
+      <ion-button (click)="logOut()">
+        <ion-icon name='log-out'></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 ```
 
 Let's assume that when logging out, we want the user redirected to the login page,
@@ -837,18 +835,17 @@ and we want the navigation stack to be cleared (so that pressing the back button
 
 To do that, you will need:
 
-* To inject the Ionic application (`App` from the `ionic-angular` package),
-  which will allow you to set the root page and thereby clear the navigation stack.
+* To inject the Angular Router, which will allow you to navigate to a defined     route.
 * To add a `logOut` method to the `CreateTripPage` component,
   since it's what we call in its HTML template above.
-* To inject `AuthProvider` and use its `logOut` method.
+* To inject `AuthService` and use its `logOut` method.
 
 After doing all that, your `CreateTripPage` component should look something like this:
 
 ```ts
 // Other imports...
 // TODO: import the authentication provider and login page.
-import { AuthProvider } from '../../providers/auth/auth';
+import { AuthService } from '../../providers/auth/auth';
 import { LoginPage } from '../login/login';
 
 @Component({
@@ -859,7 +856,7 @@ export class CreateTripPage {
 
   constructor(
     // TODO: inject the authentication provider.
-    private auth: AuthProvider,
+    private auth: AuthService,
     public navCtrl: NavController,
     public navParams: NavParams
   ) {
@@ -868,6 +865,7 @@ export class CreateTripPage {
   // TODO: add a method to log out.
   logOut() {
     this.auth.logOut();
+    this.router.navigateByUrl('/login');
   }
 
 }
@@ -877,39 +875,7 @@ You should now see the logout button in the navigation bar after logging in.
 
 You might want to encapsulate it into a reusable component later, to include in other screens.
 
-<a href="#top">Back to top</a>
-
-
-
-### Authentication observable magic
-
-Note that we saved ourselves a bit of trouble by implementing authentication with Observables in the main component:
-
-```ts
-// Direct the user to the correct page depending on whether he or she is logged in.
-this.auth.isAuthenticated().subscribe(authenticated => {
-  if (authenticated) {
-    this.rootPage = HomePage;
-  } else {
-    this.rootPage = LoginPage;
-  }
-});
-```
-
-It subscribes to the Observable authentication stream when the app starts and **keeps listening to events**,
-meaning that it will get notified of any change in the current authentication status:
-
-* When a user **logs in**, the subscription callback is called with `true` to indicate that a user logged in,
-  and the user is redirected to the `HomePage`.
-* When a user **logs out**, the subscription callback is called again with `false`,
-  and the user is redirected to the `LoginPage`.
-
-That way, we didn't have to explicitly add some more code to redirect the user to the login page
-when called the authentication provider's `logOut()` function from the `CreateTripPage` component's `logOut()` method.
-
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ### Configuring an HTTP interceptor
 
@@ -957,7 +923,7 @@ import { HttpClient } from '@angular/common/http';
 export class TripListPage {
 
   constructor(
-    private auth: AuthProvider,
+    private auth: AuthService,
     // TODO: inject the HTTP client.
     public http: HttpClient,
     public navCtrl: NavController,
@@ -984,30 +950,30 @@ you will see that there is no `Authorization` header sent even when the user is 
 Now you can generate the interceptor service:
 
 ```bash
-$> ionic generate provider AuthInterceptor
+$> ionic generate service auth/AuthInterceptor
 ```
 
-Put the following contents in the generated `src/providers/auth-interceptor/auth-interceptor.ts` file:
+Put the following contents in the generated `src/app/auth/auth-interceptor.service.ts` file:
 
 ```ts
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs';
 import { first, switchMap } from 'rxjs/operators';
 
-import { AuthProvider } from '../auth/auth';
+import { AuthService } from './auth.service';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AuthInterceptorProvider implements HttpInterceptor {
 
-  constructor(private injector: Injector) {}
+  constructor(private injector: Injector) { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    // Retrieve AuthProvider at runtime from the injector.
+    // Retrieve AuthService at runtime from the injector.
     // (Otherwise there would be a circular dependency:
-    //  AuthInterceptorProvider -> AuthProvider -> HttpClient -> AuthInterceptorProvider).
-    const auth = this.injector.get(AuthProvider);
+    //  AuthInterceptorProvider -> AuthService -> HttpClient -> AuthInterceptorProvider).
+    const auth = this.injector.get(AuthService);
 
     // Get the bearer token (if any).
     return auth.getToken().pipe(
@@ -1035,7 +1001,7 @@ In `src/app/app.module.ts`, add:
 
 ```ts
 // Other imports...
-import { AuthInterceptorProvider } from '../providers/auth-interceptor/auth-interceptor';
+import { AuthInterceptorProvider } from './auth/auth-interceptor.service';
 
 @NgModule({
   // ...
@@ -1052,9 +1018,7 @@ The `multi: true` option is necessary because you can register multiple intercep
 
 Now all your API calls will have the `Authorization` header when the user is logged in.
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ## Multi-environment & sensitive configuration
 
@@ -1077,135 +1041,210 @@ If you wanted to change environments, you would have to manually change the URL 
 
 Let's find a way to centralize this configuration.
 
-<a href="#top">Back to top</a>
+<a href="#top">↑ Back to top</a>
 
+### Environment files
 
+There is already a mechanism in place to handle those environment-specific values.
 
-### Create a sample configuration file
+In `src/environments`, you should find two files: `environment.ts` and `environment.prod.ts`.
 
-Create a `src/app/config.sample.ts` file.
-This file is a placeholder which should **NOT** contain the actual configuration.
-Its purpose is to explain to other developers of the project that they should create a `config.ts` file and fill in the actual values:
+The purpose of those file is to hold the configuration values of a specific environment, so that you could easily swap one config from another to deploy your app in different environment ("development", "test", "staging", "production", etc).
 
-```ts
-// Copy this file to config.ts and fill in appropriate values.
-export const config = {
-  apiUrl: 'https://example.com/api'
-}
+The first file, `environment.ts` is the file which you should import in Angular to load environment specific values (we'll see how later on). **This is the one that we will commit**.
+
+The other one, `environment.prod.ts`, is the file that will contain production specific values. **It should not be commited**. Alas... it already has. It's not a problem since the content is pretty empty, but we need to untrack this file.
+
+To do so, simply delete it from your filesystem (we'll recreate it later), then commit this deletion in git:
+
+```bash
+$> rm src/environments/environment.prod.ts
+$> git add src/environments/environment.prod.ts
+$> git commit -m "Removing production environment file from git"
 ```
 
-<a href="#top">Back to top</a>
+The `environment.ts` file is a placeholder which should **NOT** contain the actual configuration.
+Its purpose is to explain to other developers of the project what their own environment file should contains and fill in the actual values.
 
+Replace the entire content of `environment.ts` with this:
 
+```ts
+// Copy this file to environment.dev.ts and fill in appropriate values.
+export const environment = {
+  production: false,
+  apiUrl: 'https://example.com/api'
+};
+```
+
+<a href="#top">↑ Back to top</a>
 
 ### Create the actual configuration file
 
-You can now create the actual `src/app/config.ts` configuration file, this time containing the actual configuration values:
+You can now create the actual `src/environments/environment.dev.ts` configuration file (by copying the `environment.ts` file), this time containing the actual configuration values, at least for development:
 
 ```ts
 export const config = {
+  production: false,
   apiUrl: 'https://comem-travel-log-api.herokuapp.com/api'
 }
 ```
 
-<a href="#top">Back to top</a>
+<a href="#top">↑ Back to top</a>
 
+### Add the environment files to your `.gitignore` file
 
-
-### Add the configuration file to your `.gitignore` file
-
-Of course, you **don't want to commit `config.ts`**, but you do want to commit `config.sample.ts`
+Of course, you **don't want to commit `environment.dev.ts`**, but you do want to commit `environment.ts`
 so that anyone who clones your project can see what configuration options are required.
-Add these 2 lines to your `.gitignore` file:
+Add this line at the bottom of your `.gitignore` file:
 
 ```
-src/app/config.*
-!src/app/config.sample.ts
+# Environment files
+src/environments/environment.*.ts
 ```
 
-The first line ignores any `config.*` file in the `src/app` directory.
-The second line adds an exception: that the `config.sample.ts` should **not** be ignored.
-You now have your uncommitted configuration file!
+This line ignore all the files that are named `environment.<something>.ts`, whatever the `<something>` value is. So `environment.dev.ts` will be ignored, along with, e.g. `environment.prod.ts` or `environment.test.ts`. But `environment.ts` does not match the excepted pattern and, as such, will not tracked by git.
 
-Not only that, but if you often need to quickly swap between different configurations,
-you may create several versions of the configuration file, like `config.dev.ts` or `config.prod.ts`, which will all be ignored by Git.
-Everytime you need to use one of them, simply overwrite `config.ts` with the correct one:
+You can try this by recreating the `environment.prod.ts` file that we deleted earlier. Simply copy again `environment.ts`, rename it and replace its content with:
+
+```ts
+export const environment = {
+  production: true,
+  apiUrl: 'https://production/api/url'
+};
+```
+
+The new file should **not** ne tracked by git:
 
 ```bash
-$> cp src/app/config.dev.ts src/app/config.ts
-$> cp src/app/config.prod.ts src/app/config.ts
+$> git status
 ```
 
-This is something you could put in your `package.json`'s `scripts` section:
+You now have your uncommitted environment files!
+
+### Configure angular to use environment files
+
+Now that we do have environment specific files, we have to tell Angular how to use them.
+
+Since its 6.x version, Angular CLI uses a file called `angular.json` to manage building and serving Angular apps.
+
+There's **A LOT** of things going on in this file. What's interesting to us are the `projects.app.architect.build.configurations` object, and the `projects.app.architect.serve.configurations` object.
+
+The first one, `projects.app.architect.build.configurations`, is where you would define each build configuration for you app. There should already be one configuration named `production` in this array, which defines how angular builds your app for a `production` environment. This config should have a `fileReplacements` property:
 
 ```json
-"scripts": {
-  "dev": "cp src/app/config.dev.ts src/app/config.ts",
-  "prod": "cp src/app/config.prod.ts src/app/config.ts",
-  "...": "..."
+"fileReplacements": [
+  {
+    "replace": "src/environments/environment.ts",
+    "with": "src/environments/environment.prod.ts"
+  }
+],
+```
+Here, when Angular builds your app for production, it will `replace` the content of the `src/environments/environment.ts` file `with` the content of the `src/environments/environment.prod.ts` file.
+
+> This will not overwrite the files on your filesystem.
+
+We need to add a similar configuration for our local development environment, but this time, it's the content of `environment.dev.ts` that should replaces the placeholder content of `environment.ts`. Add a new `dev` property to `projects.app.architect.build.configurations`:
+
+```json
+"dev": {
+  "fileReplacements": [
+    {
+      "replace": "src/environments/environment.ts",
+      "with": "src/environments/environment.dev.ts"
+    }
+  ]
+}
+```
+Then, we need to use this new configuration when serving our app with `ng serve`. Add a new property to `projects.app.architect.serve.configurations`:
+
+```json
+"dev": {
+  "browserTarget": "app:build:dev"
+}
+```
+The value of `browserTarget` tells Angular to serve to the browser the result of `app:build:dev` which will use the build configuration we created just before.
+
+Finally, open your `package.json` file and update the value of the `scripts.start` property:
+
+```json
+{
+  ...,
+  "scripts": {
+    ...,
+    "start": "ng serve -c dev",
+    ...
+  }
 }
 ```
 
-<a href="#top">Back to top</a>
+Stops your `npm start` script, if it was already running, and run it again, so that your `environment.dev.ts` file content replaces the `environment.ts` content.
 
+While your at it, you could add a new script that would build your app with your production environment:
 
+```json
+{
+  ...,
+  "scripts": {
+    ...,
+    "build:prod": "ng build -c production",
+    ...
+  }
+}
+```
+
+<a href="#top">↑ Back to top</a>
 
 ### Feed the configuration to Angular
 
 Now that you have your configuration files, you want to use its values in code.
 
-Since it's a TypeScript file like any other, you simply have to import and use it,
-for example in `src/pages/trip-list/trip-list.ts`:
+Since it's a TypeScript file like any other, you simply have to import and use it.
+
+Remember that, due to the file content replacement, you **only ever need to import `environment.ts` in your code!**.
+
+> The content of the file will change depending on which environment your app runs.
 
 ```ts
 // Other imports...
-// TODO: import the configuration.
-import { config } from '../../app/config';
+// TODO: import the environment config.
+import { environment } from 'src/environments/environment';
 
 // ...
 export class TripListPage {
   // ...
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad TripListPage');
-
-    // TODO: replace the hardcoded API URL by the one from the configuration.
-    const url = `${config.apiUrl}/trips`;
-    this.httpClient.get(url).subscribe(trips => {
-      console.log('Trips loaded', trips);
+  ngOnInit() {
+    const url = `${environment.apiUrl}/trips`;
+    this.http.get(url).subscribe(trips => {
+      console.log(`Trips loaded`, trips);
     });
   }
   // ...
 }
 ```
 
-Do not forget to also update the authentication provider in `src/providers/auth/auth.ts`,
-which also has a hardcoded URL:
+Do not forget to also update the authentication service in `src/app/auth/auth.service.ts`, which also has a hardcoded URL:
 
 ```ts
 // Other imports...
-// TODO: import the configuration.
-import { config } from '../../app/config';
+// TODO: import the environment config.
+import { environment } from 'src/environments/environment';
 
 // ...
-export class AuthProvider {
+export class AuthService {
   // ...
   logIn(authRequest: AuthRequest): Observable<User> {
 
-    // TODO: replace the hardcoded API URL by the one from the configuration.
-    const authUrl = `${config.apiUrl}/auth`;
+    // TODO: replace the hardcoded API URL by the one from the environment config.
+    const authUrl = `${environment.apiUrl}/auth`;
     // ...
   }
   // ...
 }
 ```
 
-<a href="#top">Back to top</a>
-
-
+<a href="#top">↑ Back to top</a>
 
 ## Troubleshooting
-
-
 
 ### Initializers are not allowed in ambient contexts
 
@@ -1232,8 +1271,6 @@ You can solve the problem by downgrading the `ngx-leaflet` library to the previo
 ```
 
 Then run `npm install` in the project's directory to install that older version.
-
-
 
 ### `ionic serve` crashes with an `ECONNRESET` error when saving a file
 
@@ -1271,8 +1308,6 @@ Reference:
 
 * https://forum.ionicframework.com/t/ionic-serve-crash-on-save/115615/39
 * https://github.com/ionic-team/ionic-app-scripts/issues/1345
-
-
 
 ### Cordova doesn't want JDK 1.9
 
