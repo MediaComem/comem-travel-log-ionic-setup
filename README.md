@@ -57,7 +57,7 @@ The latest LTS (Long Term Support) version is recommended (v12.13.0 at the time 
 This guide describes a proposed list of features and a user interface based on those features.
 This is only a suggestion. You can support other features and make a different user interface.
 
-The proposed app should users to do the following:
+The proposed app should allow users to do the following:
 
 * Create new trips & places.
 * See visited places on an interactive map.
@@ -88,15 +88,15 @@ Now that we know what we want, we can start setting up the app!
 
 ## Set up the application
 
-### Create a blank Ionic app and make it a repository
+### Create a blank Ionic app
 
-Make sure you have Ionic and Cordova installed:
+Make sure you have [Ionic][ionic] and [Cordova][cordova] installed:
 
 ```bash
 $> ionic -v
 5.4.5
 ```
-> If you have an error when running the above command, execute:
+> If you have an error when running the above command, this probably means that you need to install [Ionic][ionic]. To do so, execute:
 >  ```bash
 >  $> npm install -g ionic@latest
 >  ```
@@ -105,31 +105,24 @@ $> ionic -v
 $> cordova -v
 9.0.0
 ```
-> If you have an error when running the above command, execute:
+> If you have an error when running the above command, this probably means that you need to install [Cordova][cordova]. To do so, execute:
 > ```bash
 > $> npm install -g cordova@latest
 > ```
 
-Go in the directory where you want the app project to be located, then generate a blank Ionic app with the following command:
+Go in the directory where you want the app source code to be located, then generate a blank Ionic app with the following command:
+
+> No need to create a dedicated directory for your app ; it will be created for you by the CLI tool
 
 ```bash
 $> cd /path/to/projects
-$> ionic start travel-log blank
+$> ionic start travel-log blank --type=angular
 ```
-When asked, to chose a **framework**, select **Angular**
-```bash
-Pick a framework!
+> Be sure to add `--type=angular`. Otherwise, the CLI will ask you to choose your framework. In which case, you must select **Angular**
 
-Please select the JavaScript framework to use for your new app. To bypass this prompt next time, supply a value for the
---type option.
-
-? Framework: (Use arrow keys)
-> Angular | https://angular.io
-  React   | https://reactjs.org
-```
 Then wait for the install to proceed... ⏳
 
-Go into the app directory. The `ionic start` command should have already initialized a Git repository:
+Go into the app directory. The `ionic start` command should have already initialized a Git repository and made the first commit:
 
 ```bash
 $> cd travel-log
@@ -145,13 +138,13 @@ Date:   Mon Nov 4 14:25:29 2019 +0100
 
 ### Serve the application locally
 
-To make sure everything was set up correctly, use the following command from the repository to serve the application locally in your browser:
+To make sure everything was set up correctly, use the following command from the root of your project directory to serve the application locally in your browser:
 
 ```bash
 $> ionic serve
 ```
 
-You should see something like this:
+You should see something like this in your browser:
 
 ![Serving the blank app](setup/blank-app-serve.png)
 
@@ -176,18 +169,22 @@ We will use Ionic's [Tabs][ionic-tabs] component.
 Each page will be an [Angular component][angular-component].
 Ionic has a `generate` command that can automatically set up the files we need to create each page's component.
 
-The existing `Home` page will contains the Tab layout, and each tab page is therefor a subpage of `Home`.
+The existing `Home` page will contains the Tab layout (i.e. where the tab will be displayed), and each tab page should therefor be a subpage of `Home`. Let's create them as such:
+
+> Use the up arrow key to retrieve the last executed command. This will prevent you typing the line three times
 
 ```bash
 $> ionic generate page home/CreateTrip --module=home/home.module.ts
 $> ionic generate page home/PlacesMap --module=home/home.module.ts
 $> ionic generate page home/TripList --module=home/home.module.ts
 ```
-> Not setting the `--module` param will add your new page to the main navigation array, which is not what we want.
+> Notice how each page name is preceeded by `home/`. That tells the CLI where to put the page's files.
 
-> Use the up arrow key to get the last executed command. This will prevent you typing the same line three times
+> Notice how we used the `--module` parameter for each command. This tells the CLI that the created page does not belong to the main `AppModule`, but rather to the `HomeModule`.
 
 This will generate the following files:
+
+> For the CreateTrip page
 
 ```
 src/app/home/create-trip/create-trip.module.ts
@@ -195,11 +192,17 @@ src/app/home/create-trip/create-trip.page.html
 src/app/home/create-trip/create-trip.page.spec.ts
 src/app/home/create-trip/create-trip.page.ts
 src/app/home/create-trip/create-trip.page.scss
+```
+> For the PlacesMap page
+```
 src/app/home/places-map/places-map.module.ts
 src/app/home/places-map/places-map.page.html
 src/app/home/places-map/places-map.page.spec.ts
 src/app/home/places-map/places-map.page.ts
 src/app/home/places-map/places-map.page.scss
+```
+> For the TripList page
+```
 src/app/home/trip-list/trip-list.module.ts
 src/app/home/trip-list/trip-list.page.html
 src/app/home/trip-list/trip-list.page.spec.ts
@@ -209,11 +212,11 @@ src/app/home/trip-list/trip-list.page.scss
 
 For each page, we have:
 
-* A module declaration.
-* An HTML template.
-* A [Sass/SCSS][sass] stylesheet.
-* An Angular component.
-* A test suite with a default test.
+* A module declaration file (`*.module.ts`).
+* An HTML template (`*.page.html`).
+* A [Sass/SCSS][sass] stylesheet (`*.page.scss`).
+* An Angular component (`*.page.ts`).
+* A test suite with a default test (`*.page.spec.ts`).
 
 Now update the HTML template for each page and add some content within the `<ion-content>` tag.
 For example, in `src/app/home/create-trip/create-trip.page.html`:
@@ -233,7 +236,7 @@ First, **add the tab pages in the `Home` router** (`src/app/home/home.module.ts`
 ```ts
 // ...imports omitted for brevity
 
-// TODO: move the routes declaration outside the NgModule declaration
+// TODO: create a constant to hold the routes declaration
 const routes: Routes = [
   {
     path: '', component: HomePage, children: [
@@ -265,7 +268,7 @@ const routes: Routes = [
 })
 export class HomePageModule { }
 ```
-> Note how each page is not directly importted to the `Home` module ; instead, we're using **Lazy loading** to load each page's module (which in turn will load the proper component)
+> Note how each page is not directly imported to the `Home` module ; instead, we're using [**Lazy loading**][lazy-loading] to load each page's module (which in turn will load the proper component)
 
 Second, **update the home page's component** (`src/app/home/home.page.ts`) to include the list of tabs we want:
 
@@ -276,7 +279,7 @@ import { Component } from '@angular/core';
 export interface HomePageTab {
   title: string; // The title of the tab in the tab bar
   icon: string; // The icon of the tab in the tab bar
-  path: string; // The route's path that displays the tab
+  path: string; // The route's path of the tab to display
 }
 
 @Component({
@@ -298,12 +301,12 @@ export class HomePage {
 
 }
 ```
-> Be sure that the value of the tab's `path` property matches the corresponding route in the `home.module.ts` file.
+> Be sure that the value of each `HomePageTab`'s `path` property matches the corresponding route in the `home.module.ts` file.
 
-Third, we will **replace the entire contents of the home page's template** (`src/app/home/home.page.html`) to use Ionic's [Tabs component][ionic-tabs].
+Third, we will **replace the entire contents of the home page's template** (`src/app/home/home.page.html`) with a template that uses Ionic's [Tabs component][ionic-tabs].
 
 Angular's `ngFor` directive allows us to iterate over the `tabs` array we declared in the home page's component,
-and to put one `<ion-tab-button>` tag in the tab bar for each component:
+and create an `<ion-tab-button>` tag for each of them:
 
 ```html
 <ion-tabs>
@@ -410,12 +413,7 @@ export class AuthResponse {
 
 ### Create an authentication service
 
-Let's generate a reusable, injectable service to manage authentication:
-
-```bash
-$> ionic generate service auth/Auth
-```
-Since our new service will make Http requests, we need to imports the `HttpClientModule` in our app. Do so in the `src/app/app.module.ts` file:
+Since the new service we'll create will make Http requests, we need to import Angular's `HttpClientModule` in our app. Do so in the `src/app/app.module.ts` file:
 
 ```ts
 // ...Other imports
@@ -427,15 +425,19 @@ import { HttpClientModule } from '@angular/common/http';
   entryComponents: [],
   imports: [
     /* ... */
-    HttpClientModule // TODO: import Angular's httpClientModule
+    HttpClientModule // TODO: add Angular's httpClientModule to your module imports
   ],
   providers: [/* ... */],
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
 ```
+Now, let's generate a reusable, injectable service to manage authentication:
 
-You can replace the contents of the generated `src/app/auth/auth.service.ts` file with the following code:
+```bash
+$> ionic generate service auth/Auth
+```
+You can replace the content of the generated `src/app/auth/auth.service.ts` file with the following code:
 
 ```ts
 import { HttpClient } from '@angular/common/http';
@@ -501,7 +503,7 @@ Generate a login page component to be added to the main `app-routing.module.ts` 
 $> ionic generate page Login
 ```
 
-Add the following HTML form inside the `<ion-content>` tag of `src/app/login/login.page.html`:
+Add the following HTML form **inside the `<ion-content>` tag** of `src/app/login/login.page.html`:
 
 ```html
 <form #loginForm="ngForm" (submit)="onSubmit(loginForm)">
@@ -714,7 +716,7 @@ import { IonicStorageModule } from '@ionic/storage';
   // ...
   imports: [
     // ...
-    // TODO: import the ionic storage module into the app's module.
+    // TODO: add the ionic storage module into the app's module.
     IonicStorageModule.forRoot()
   ],
   // ...
@@ -747,7 +749,7 @@ private saveAuth(auth: AuthResponse): Observable<void> {
 ```
 
 The storage module returns Promises, but we'll be plugging this new function into `logIn()` which uses Observables,
-so we convert the Promise to an Observable before returning it.
+so we convert the Promise to an Observable before returning it, with the `from` function.
 
 You can now update the `logIn()` method to persist the API's authentication response with the new `saveAuth()` method.
 To do that, use RxJS's [`delayWhen`][rxjs-delay-when] operator, which allows us to delay an Observable stream (in this case, the one that indicates our user is authenticated) until another Observable emits
@@ -795,7 +797,7 @@ constructor(private http: HttpClient, private storage: Storage) {
 
 Your app should now remember user credentials even when you reload it!
 
-Finally, also update the authentication provider's `logOut()` method to remove the stored authentication from storage:
+Finally, also update the `AuthService`'s `logOut()` method to remove the stored authentication from storage:
 
 ```ts
 logOut() {
@@ -811,7 +813,9 @@ logOut() {
 ### Log out
 
 You should also add a UI component to allow the user to log out.
-As an example, you will display a logout button in the trip creation screen.
+As an example, you will display a logout button in the title bar of the trip creation screen.
+
+> This is only for example. In your real project, you might want to put this logout button in a more appropriate location... Just sayin'
 
 Add an `<ion-buttons>` tag with a logout button in `src/app/home/create-trip/create-trip.page.html`:
 
@@ -830,15 +834,11 @@ Add an `<ion-buttons>` tag with a logout button in `src/app/home/create-trip/cre
 </ion-header>
 ```
 
-Let's assume that when logging out, we want the user redirected to the login page,
-and we want the navigation stack to be cleared (so that pressing the back button doesn't bring the user back to a protected screen).
+Let's assume that when logging out, we want the user redirected to the login page. To do that, you will need to:
 
-To do that, you will need:
-
-* To inject the Angular Router, which will allow you to navigate to a defined     route.
-* To add a `logOut` method to the `CreateTripPage` component,
-  since it's what we call in its HTML template above.
-* To inject `AuthService` and use its `logOut` method.
+* Inject the Angular Router, which will allow you to navigate to a defined route ;
+* Inject the `AuthService`, so that we can use use its `logOut` method,
+* Add a `logOut` method to the `CreateTripPage` component, since it's what we call in its HTML template above.
 
 After doing all that, your `CreateTripPage` component should look something like this:
 
@@ -873,7 +873,7 @@ export class CreateTripPage {
 
 You should now see the logout button in the navigation bar after logging in.
 
-You might want to encapsulate it into a reusable component later, to include in other screens.
+> Might be a good idea to create a reusable component from this button later, to include in other screens.
 
 <a href="#top">↑ Back to top</a>
 
@@ -953,7 +953,7 @@ Now you can generate the interceptor service:
 $> ionic generate service auth/AuthInterceptor
 ```
 
-Put the following contents in the generated `src/app/auth/auth-interceptor.service.ts` file:
+Put the following content in the generated `src/app/auth/auth-interceptor.service.ts` file:
 
 ```ts
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
@@ -1057,7 +1057,7 @@ The other one, `environment.prod.ts`, is the file that will contain production s
 
 Alas, both those files have already been commited when the project was set up... It's not a huge problem as both those files don't contain anything sensitive.
 
-You need to tell git to untrack them, though, so delete both of them from your filesystem (we'll recreate them later), then commit those deletions in git:
+You need to tell git to untrack them, though, so **delete both of them** from your filesystem (we'll recreate them later), then **commit those deletions** in git:
 
 ```bash
 $> rm src/environments/*
@@ -1066,7 +1066,7 @@ $> git commit -m "Remove environment files from git"
 ```
 
 Now, create a placeholder file whose purpose will be to explain to other developers of the project what their own environment file should contains so they could fill in the actual values.
-Create the `environment.sample.ts` file in `src/environments`, with this content:
+Create the `environment.sample.ts` file in `src/environments`, with this exact content (comment included):
 
 ```ts
 // Copy this file to environment.ts and fill in appropriate values.
@@ -1082,7 +1082,7 @@ export const environment = {
 
 ### Create the actual configuration file
 
-With this placeholder file, you can now create the actual `src/environments/environment.ts` configuration file (by copying the `environment.sample.ts` file), this time containing the actual configuration values, at least for development:
+With this placeholder file, you can now (re)create the actual `src/environments/environment.ts` configuration file (by copying the `environment.sample.ts` file), this time containing your actual configuration values, at least for development:
 
 ```ts
 export const environment = {
@@ -1091,7 +1091,7 @@ export const environment = {
 }
 ```
 
-While we're at it, let's also create the `environment.prod.ts` file, used for production builds, with this content:
+While we're at it, let's also (re)create the `environment.prod.ts` file, used for production builds, with this content:
 
 ```ts
 export const environment = {
@@ -1107,7 +1107,7 @@ export const environment = {
 
 Of course, you **don't want to commit neither `environment.ts` nor `environment.prod.ts`**, but you do want to commit `environment.sample.ts`
 so that anyone who clones your project can see what configuration options are required.
-Add these lines at the bottom of your `.gitignore` file:
+To do so, add these lines at the bottom of your `.gitignore` file:
 
 ```
 # Environment files
@@ -1115,7 +1115,7 @@ src/environments/*
 !src/environments/environment.sample.ts
 ```
 
-The first line tells git to not track any file in the `src/environments` folder... except for the specific `environment.sample.ts` file (this is the second line).
+The first line tells git not to track any file in the `src/environments` folder... except for the specific `environment.sample.ts` file (this is the second line).
 
 You now have your uncommitted environment files!
 
@@ -1123,14 +1123,14 @@ You now have your uncommitted environment files!
 
 The `environment.ts` file is loaded when you execute the `ionic serve` command.
 
-> If you have any `ionic serve` command running, kill it and start it again to take the changes into account.
+> If you have any `ionic serve` command running, kill it and start it again to apply the changes.
 
-When executing the same command with the `--prod` flag:
+When executing the `ionic serve` command with the `--prod` flag, like so...
 
 ```bash
 $> ionic serve --prod
 ```
-Ionic replaces the content of `environment.ts` file by the content from `environment.prod.ts`, in the build (**it does not replace the content of the actual file, thankfully**).
+...Ionic replaces the content of `environment.ts` file by the content from `environment.prod.ts`, in the build (**it does not replace the content of the actual file, thankfully**).
 
 This way, whatever the environment your app is running on, `environment.ts` is **always the file holding the adequate configuration!**
 
@@ -1138,7 +1138,7 @@ This way, whatever the environment your app is running on, `environment.ts` is *
 
 ### Feed the configuration to Angular
 
-Now that you have your configuration files, you want to use its values in code.
+Now that you have your configuration file, you want to use its values in your code.
 
 Since it's a TypeScript file like any other, you simply have to import and use it.
 
@@ -1308,7 +1308,11 @@ Reference:
 
 
 [angular-component]: https://angular.io/guide/architecture#components
+[angular-guard]: https://angular.io/guide/router#guards
+[cordova]: https://cordova.apache.org/
+[ionic]: https://ionicframework.com/
 [ionic-tabs]: https://ionicframework.com/docs/components/#tabs
+[lazy-loading]: https://angular.io/guide/lazy-loading-ngmodules
 [rxjs-delay-when]: http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-delayWhen
 [sass]: http://sass-lang.com
 [travel-log-api]: https://comem-travel-log-api.herokuapp.com
