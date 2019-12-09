@@ -1021,6 +1021,7 @@ In `src/app/app.module.ts`, add:
 
 ```ts
 // Other imports...
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptorProvider } from './auth/auth-interceptor.service';
 
 @NgModule({
