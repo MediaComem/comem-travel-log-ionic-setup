@@ -932,7 +932,7 @@ After all, we know that we need it for most calls.
 are Angular services that can be registered with the HTTP client to automatically react to requests (or responses).
 This solves our problem: we want to register an interceptor that will automatically add the `Authorization` header to all requests if the user is logged in.
 
-To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/app/home/trip-list/trip-list.ts`:
+To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/app/h/trip-list/trip-list.ts`:
 
 ```ts
 // Other imports...
@@ -948,11 +948,8 @@ export class TripListPage {
   constructor(
     private auth: AuthService,
     // TODO: inject the HTTP client.
-    public http: HttpClient,
-    public navCtrl: NavController,
-    public navParams: NavParams
-  ) {
-  }
+    public http: HttpClient
+  ) { }
 
   ionViewDidLoad() {
     // TODO: make an HTTP request to retrieve the trips.
