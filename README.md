@@ -171,7 +171,7 @@ Ionic has a `generate` command that can automatically set up the files we need t
 
 The existing `Home` page will contains the Tab layout (i.e. where the tab will be displayed), and each tab page should therefor be a subpage of `Home`.
 
-To facilitate the creation of the structure, first delete the `src/app/home` folder entirely. Then update the `app.module.ts` file to remove the route object that lead to the `HomePageModule`.
+To facilitate the creation of the structure, first delete the `src/app/home` folder entirely. Then update the `app-routing.module.ts` file to remove the route object that lead to the `HomePageModule`.
 
 Then, use the `ionic generate` command to recreate this `Home` page.
 
