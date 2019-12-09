@@ -169,24 +169,35 @@ We will use Ionic's [Tabs][ionic-tabs] component.
 Each page will be an [Angular component][angular-component].
 Ionic has a `generate` command that can automatically set up the files we need to create each page's component.
 
-The existing `Home` page will contains the Tab layout (i.e. where the tab will be displayed), and each tab page should therefor be a subpage of `Home`. Let's create them as such:
+The existing `Home` page will contains the Tab layout (i.e. where the tab will be displayed), and each tab page should therefor be a subpage of `Home`.
+
+To facilitate the creation of the structure, first delete the `src/app/home` folder entirely. Then update the `app.module.ts` file to remove the route object that lead to the `HomePageModule`.
+
+Then, use the `ionic generate` command to recreate this `Home` page.
+
+```bash
+$> ionic generate page Home
+```
+
+> This might look strange, but doing so will ensure you to have a proper HomePage file structure (the Ionic starter project has not yet been updated to the latest file structure.)
+
+Now, we can easily create and plug the subpages:
 
 > Use the up arrow key to retrieve the last executed command. This will prevent you typing the line three times
 
 ```bash
-$> ionic generate page home/CreateTrip --module=home/home.module.ts
-$> ionic generate page home/PlacesMap --module=home/home.module.ts
-$> ionic generate page home/TripList --module=home/home.module.ts
+$> ionic generate page home/CreateTrip
+$> ionic generate page home/PlacesMap
+$> ionic generate page home/TripList
 ```
 > Notice how each page name is preceeded by `home/`. That tells the CLI where to put the page's files.
-
-> Notice how we used the `--module` parameter for each command. This tells the CLI that the created page does not belong to the main `AppModule`, but rather to the `HomeModule`.
 
 This will generate the following files:
 
 > For the CreateTrip page
 
 ```
+src/app/home/create-trip/create-trip-routing.module.ts
 src/app/home/create-trip/create-trip.module.ts
 src/app/home/create-trip/create-trip.page.html
 src/app/home/create-trip/create-trip.page.spec.ts
@@ -195,6 +206,7 @@ src/app/home/create-trip/create-trip.page.scss
 ```
 > For the PlacesMap page
 ```
+src/app/home/places-map/places-map-routing.module.ts
 src/app/home/places-map/places-map.module.ts
 src/app/home/places-map/places-map.page.html
 src/app/home/places-map/places-map.page.spec.ts
@@ -203,6 +215,7 @@ src/app/home/places-map/places-map.page.scss
 ```
 > For the TripList page
 ```
+src/app/home/trip-list/trip-list-routing.module.ts
 src/app/home/trip-list/trip-list.module.ts
 src/app/home/trip-list/trip-list.page.html
 src/app/home/trip-list/trip-list.page.spec.ts
@@ -213,6 +226,7 @@ src/app/home/trip-list/trip-list.page.scss
 For each page, we have:
 
 * A module declaration file (`*.module.ts`).
+* A routing module declaration file (`*-routing.module.ts`)
 * An HTML template (`*.page.html`).
 * A [Sass/SCSS][sass] stylesheet (`*.page.scss`).
 * An Angular component (`*.page.ts`).
@@ -231,46 +245,30 @@ For example, in `src/app/home/create-trip/create-trip.page.html`:
 
 Now that the pages are ready, we need to display them.
 
-First, **add the tab pages in the `Home` router** (`src/app/home/home.module.ts`) so that we will be able to navigate to them:
+All your pages have been added to the `home-page-routing.module.ts` file and have thus specific route that can display them.
 
 ```ts
-// ...imports omitted for brevity
-
-// TODO: create a constant to hold the routes declaration
 const routes: Routes = [
-  {
-    path: '', component: HomePage, children: [
-      { path: '', redirectTo: 'map'}, // This defines the default tab
-      {
-        path: 'new',
-        loadChildren: () => import('./create-trip/create-trip.module').then(m => m.CreateTripPageModule)
-      },
-      {
-        path: 'map',
-        loadChildren: () => import('./places-map/places-map.module').then(m => m.PlacesMapPageModule)
-      },
-      {
-        path: 'list',
-        loadChildren: () => import('./trip-list/trip-list.module').then(m => m.TripListPageModule)
-      },
-    ]
+  { // Default route
+    path: '',
+    component: HomePage
+  },
+  { // Route that loads the CreateTrip module
+    path: 'create-trip',
+    loadChildren: () => import('./create-trip/create-trip.module').then( m => m.CreateTripPageModule)
+  },
+  { // Route that loads the PlacesMap module
+    path: 'places-map',
+    loadChildren: () => import('./places-map/places-map.module').then( m => m.PlacesMapPageModule)
+  },
+  { // Route that loads the TripList module
+    path: 'trip-list',
+    loadChildren: () => import('./trip-list/trip-list.module').then( m => m.TripListPageModule)
   }
 ];
-
-@NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    RouterModule.forChild(routes) // TODO: configure the router with the above constant
-  ],
-  declarations: [ HomePage ]
-})
-export class HomePageModule { }
 ```
-> Note how each page is not directly imported to the `Home` module ; instead, we're using [**Lazy loading**][lazy-loading] to load each page's module (which in turn will load the proper component)
 
-Second, **update the home page's component** (`src/app/home/home.page.ts`) to include the list of tabs we want:
+Now, **update the home page's component** (`src/app/home/home.page.ts`) to include the list of tabs we want:
 
 ```ts
 import { Component } from '@angular/core';
@@ -293,9 +291,9 @@ export class HomePage {
 
   constructor() {
     this.tabs = [
-      { title: 'New Trip', icon: 'add', path: 'new' },
-      { title: 'Places Map', icon: 'map', path: 'map'},
-      { title: 'Trip List', icon: 'list', path: 'list'}
+      { title: 'New Trip', icon: 'add', path: 'create-trip' },
+      { title: 'Places Map', icon: 'map', path: 'places-map'},
+      { title: 'Trip List', icon: 'list', path: 'trip-list'}
     ];
   }
 
