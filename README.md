@@ -247,6 +247,8 @@ Now that the pages are ready, we need to display them.
 
 All your pages have been added to the `home-page-routing.module.ts` file and have thus specific route that can display them.
 
+The current `routes` array should be exactly as follows:
+
 ```ts
 const routes: Routes = [
   { // Default route
@@ -264,6 +266,31 @@ const routes: Routes = [
   { // Route that loads the TripList module
     path: 'trip-list',
     loadChildren: () => import('./trip-list/trip-list.module').then( m => m.TripListPageModule)
+  }
+];
+```
+
+For the tabs to propertly works, you need to **change this structure** so that the pages are children of the default route. Add a `children` property to the default route with an empty array, then move the three page's route in this empty array:
+
+```ts
+const routes: Routes = [
+  { // Default route
+    path: '',
+    component: HomePage,
+    children: [
+      { // Route that loads the CreateTrip module
+        path: 'create-trip',
+        loadChildren: () => import('./create-trip/create-trip.module').then( m => m.CreateTripPageModule)
+      },
+      { // Route that loads the PlacesMap module
+        path: 'places-map',
+        loadChildren: () => import('./places-map/places-map.module').then( m => m.PlacesMapPageModule)
+      },
+      { // Route that loads the TripList module
+        path: 'trip-list',
+        loadChildren: () => import('./trip-list/trip-list.module').then( m => m.TripListPageModule)
+      }
+    ]
   }
 ];
 ```
