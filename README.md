@@ -869,30 +869,28 @@ After doing all that, your `CreateTripPage` component should look something like
 
 ```ts
 // Other imports...
-// TODO: import the authentication provider and login page.
-import { AuthService } from '../../providers/auth/auth';
-import { LoginPage } from '../login/login';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/auth/auth.service';
 
-@Component({
-  selector: 'page-create-trip',
-  templateUrl: 'create-trip.html'
-})
-export class CreateTripPage {
+@Component({/* ... */})
+export class CreateTripPage implements OnInit {
 
   constructor(
     // TODO: inject the authentication provider.
     private auth: AuthService,
-    public navCtrl: NavController,
-    public navParams: NavParams
-  ) {
+    // TODO: inject the router
+    private router: Router
+  ) { }
+
+  ngOnInit() {
   }
 
-  // TODO: add a method to log out.
+    // TODO: add a method to log out.
   logOut() {
+    console.log('logging out...');
     this.auth.logOut();
     this.router.navigateByUrl('/login');
   }
-
 }
 ```
 
@@ -934,7 +932,7 @@ After all, we know that we need it for most calls.
 are Angular services that can be registered with the HTTP client to automatically react to requests (or responses).
 This solves our problem: we want to register an interceptor that will automatically add the `Authorization` header to all requests if the user is logged in.
 
-To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/pages/trip-list/trip-list.ts`:
+To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/app/home/trip-list/trip-list.ts`:
 
 ```ts
 // Other imports...
