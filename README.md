@@ -10,21 +10,23 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Prerequisites](#prerequisites)
 - [Features](#features)
 - [Design the user interface](#design-the-user-interface)
 - [Set up the application](#set-up-the-application)
-  - [Create a blank Ionic app and make it a repository](#create-a-blank-ionic-app-and-make-it-a-repository)
+  - [Create a blank Ionic app](#create-a-blank-ionic-app)
   - [Serve the application locally](#serve-the-application-locally)
 - [Set up the navigation structure](#set-up-the-navigation-structure)
   - [Create the pages](#create-the-pages)
   - [Update the app to use the pages](#update-the-app-to-use-the-pages)
+  - [Default tab](#default-tab)
 - [Set up security](#set-up-security)
   - [Check the documentation of the API's authentication resource](#check-the-documentation-of-the-apis-authentication-resource)
   - [Create model classes](#create-model-classes)
   - [Create an authentication service](#create-an-authentication-service)
   - [Create the login screen](#create-the-login-screen)
-  - [Use the authentication service to protect access to the home page](#use-the-authentication-service-to-protect-access-to-the-home-page)
+  - [Use the authentication service to protect access to the layout page](#use-the-authentication-service-to-protect-access-to-the-layout-page)
   - [Storing the authentication credentials](#storing-the-authentication-credentials)
   - [Log out](#log-out)
   - [Configuring an HTTP interceptor](#configuring-an-http-interceptor)
@@ -32,12 +34,8 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
   - [Environment files](#environment-files)
   - [Create the actual configuration file](#create-the-actual-configuration-file)
   - [Add the environment files to your `.gitignore` file](#add-the-environment-files-to-your-gitignore-file)
-  - [Configure angular to use environment files](#configure-angular-to-use-environment-files)
+  - [When are the environment files used](#when-are-the-environment-files-used)
   - [Feed the configuration to Angular](#feed-the-configuration-to-angular)
-- [Troubleshooting](#troubleshooting)
-  - [Initializers are not allowed in ambient contexts](#initializers-are-not-allowed-in-ambient-contexts)
-  - [`ionic serve` crashes with an `ECONNRESET` error when saving a file](#ionic-serve-crashes-with-an-econnreset-error-when-saving-a-file)
-  - [Cordova doesn't want JDK 1.9](#cordova-doesnt-want-jdk-19)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
