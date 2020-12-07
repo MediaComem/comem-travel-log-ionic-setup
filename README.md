@@ -554,7 +554,6 @@ export class AuthService {
 
   constructor(private http: HttpClient) {
     this.authSource = new ReplaySubject(1);
-    this.authSource.next();
     this.auth$ = this.authSource.asObservable();
   }
 
@@ -563,11 +562,11 @@ export class AuthService {
   }
 
   getUser(): Observable<User> {
-    return this.auth$.pipe(map((auth) => (auth ? auth.user : undefined)));
+    return this.auth$.pipe(map((auth) => auth?.user));
   }
 
   getToken(): Observable<string> {
-    return this.auth$.pipe(map((auth) => (auth ? auth.token : undefined)));
+    return this.auth$.pipe(map((auth) => auth?.token));
   }
 
   logIn(authRequest: AuthRequest): Observable<User> {
@@ -700,9 +699,7 @@ export class LoginPage {
 
     // Perform the authentication request to the API.
     this.auth.logIn(this.authRequest).subscribe({
-      next: () => {
-        this.router.navigateByUrl("/");
-      },
+      next: () => this.router.navigateByUrl("/"),
       error: (err) => {
         this.loginError = true;
         console.warn(`Authentication failed: ${err.message}`);
@@ -742,11 +739,13 @@ export class AuthGuard implements CanActivate {
   constructor(private auth: AuthService, private router: Router) {}
 
   canActivate(): Observable<boolean | UrlTree> {
-    return this.auth.isAuthenticated().pipe(
-      map((isAuthenticated) => {
-        return isAuthenticated ? true : this.router.parseUrl("/login");
-      })
-    );
+    return this.auth
+      .isAuthenticated()
+      .pipe(
+        map((isAuthenticated) =>
+          isAuthenticated ? true : this.router.parseUrl("/login")
+        )
+      );
   }
 }
 ```
@@ -868,9 +867,7 @@ logIn(authRequest: AuthRequest): Observable<User> {
   const authUrl = 'https://devmobil-travel-log-api.herokuapp.com/api/auth';
   return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
     // Delay the observable stream while persisting the authentication response.
-    delayWhen(auth => {
-      return this.saveAuth(auth);
-    }),
+    delayWhen(auth => this.saveAuth(auth)),
     map(auth => {
       this.authSource.next(auth);
       console.log(`User ${auth.user.name} logged in`);
