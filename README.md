@@ -259,7 +259,7 @@ For example, in `src/app/layout/create-trip/create-trip.page.html`:
 
 Now that the pages are ready, we need to display them.
 
-All your pages have been added to the `layout-page-routing.module.ts` file and have thus specific route that can display them.
+All your pages have been added to the `layout-routing.module.ts` file and have thus specific route that can display them.
 
 The current `routes` array should be exactly as follows (minus the comments):
 
