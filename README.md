@@ -1087,7 +1087,7 @@ export class AuthInterceptorService implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     // Retrieve AuthService at runtime from the injector.
     // (Otherwise there would be a circular dependency:
-    //  AuthInterceptorProvider -> AuthService -> HttpClient -> AuthInterceptorProvider).
+    //  AuthInterceptorService -> AuthService -> HttpClient -> AuthInterceptorService).
     const auth = this.injector.get(AuthService);
 
     // Get the bearer token (if any).
@@ -1115,7 +1115,7 @@ In `src/app/app.module.ts`, add:
 ```ts
 // Other imports...
 import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
-import { AuthInterceptorProvider } from "./auth/auth-interceptor.service";
+import { AuthInterceptorService } from "./auth/auth-interceptor.service";
 
 @NgModule({
   // ...
@@ -1123,7 +1123,7 @@ import { AuthInterceptorProvider } from "./auth/auth-interceptor.service";
     // Other providers...
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptorProvider,
+      useClass: AuthInterceptorService,
       multi: true,
     },
   ],
