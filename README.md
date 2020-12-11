@@ -1022,6 +1022,8 @@ To demonstrate that it works, start by adding a call to list trips in the `TripL
 // Other imports...
 // TODO: import Angular's HTTP client.
 import { HttpClient } from "@angular/common/http";
+import { ViewDidEnter } from '@ionic/angular';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: "page-trip-list",
@@ -1029,8 +1031,9 @@ import { HttpClient } from "@angular/common/http";
 })
 export class TripListPage implements ViewDidEnter {
   constructor(
+    // Inject the AuthService
     private auth: AuthService,
-    // TODO: inject the HTTP client.
+    // Inject the HTTP client
     public http: HttpClient
   ) {}
 
