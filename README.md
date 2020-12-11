@@ -555,6 +555,7 @@ export class AuthService {
   constructor(private http: HttpClient) {
     this.authSource = new ReplaySubject(1);
     this.auth$ = this.authSource.asObservable();
+    this.authSource.next(null);
   }
 
   isAuthenticated(): Observable<boolean> {
@@ -892,9 +893,10 @@ constructor(private http: HttpClient, private storage: Storage) {
 
   this.authSource = new ReplaySubject(1);
   this.auth$ = this.authSource.asObservable();
+  // this.authSource.next(null); <-- REMOVE THIS LINE
   // Load the stored authentication response from storage when the app starts.
   this.storage.get('auth').then(auth => {
-    // Emit the loaded value into the observable stream.
+    // Emit the loaded value into the auth$ stream.
     this.authSource.next(auth);
   });
 }
