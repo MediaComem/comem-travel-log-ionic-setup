@@ -266,7 +266,7 @@ For example, in `src/app/layout/create-trip/create-trip.page.html`:
 
 Now that the pages are ready, we need to display them.
 
-All your pages have been added to the `layout-page-routing.module.ts` file and have thus specific route that can display them.
+All your pages have been added to the `layout-routing.module.ts` file and have thus specific route that can display them.
 
 The current `routes` array should be as follows (minus the comments):
 
@@ -575,11 +575,11 @@ export class AuthService {
   }
 
   getUser$(): Observable<User> {
-    return this.#auth$.pipe(map((auth) => (auth ? auth.user : undefined)));
+    return this.#auth$.pipe(map((auth) => auth?.user));
   }
 
   getToken$(): Observable<string> {
-    return this.#auth$.pipe(map((auth) => (auth ? auth.token : undefined)));
+    return this.#auth$.pipe(map((auth) => auth?.token));
   }
 
   logIn$(authRequest: AuthRequest): Observable<User> {
@@ -717,9 +717,7 @@ export class LoginPage {
 
     // Perform the authentication request to the API.
     this.auth.logIn$(this.authRequest).subscribe({
-      next: () => {
-        this.router.navigateByUrl("/");
-      },
+      next: () => this.router.navigateByUrl("/"),
       error: (err) => {
         this.loginError = true;
         console.warn(`Authentication failed: ${err.message}`);
@@ -1048,6 +1046,8 @@ To demonstrate that it works, start by adding a call to list trips in the `TripL
 // Other imports...
 // TODO: import Angular's HTTP client.
 import { HttpClient } from "@angular/common/http";
+import { ViewDidEnter } from "@ionic/angular";
+import { AuthService } from "src/app/auth/auth.service";
 
 @Component({
   selector: "page-trip-list",
@@ -1055,8 +1055,9 @@ import { HttpClient } from "@angular/common/http";
 })
 export class TripListPage implements ViewDidEnter {
   constructor(
+    // Inject the AuthService
     private auth: AuthService,
-    // TODO: inject the HTTP client.
+    // Inject the HTTP client
     public http: HttpClient
   ) {}
 
@@ -1112,7 +1113,7 @@ export class AuthInterceptorService implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     // Retrieve AuthService at runtime from the injector.
     // (Otherwise there would be a circular dependency:
-    //  AuthInterceptorProvider -> AuthService -> HttpClient -> AuthInterceptorProvider).
+    //  AuthInterceptorService -> AuthService -> HttpClient -> AuthInterceptorService).
     const auth = this.injector.get(AuthService);
 
     // Get the bearer token (if any).
