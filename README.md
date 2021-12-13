@@ -830,7 +830,7 @@ Then import it into your application's module in `src/app/app.module.ts`:
 ```ts
 // Other imports...
 // TODO: import the ionic storage module.
-import { IonicStorageModule } from "@ionic/storage";
+import { IonicStorageModule } from "@ionic/storage-angular";
 
 @NgModule({
   // ...
@@ -847,6 +847,9 @@ export class AppModule {}
 Initialize the storage in `AppComponent` in `src/app/app.component.ts`:
 
 ```ts
+// Other imports...
+import { Storage } from "@ionic/storage";
+
 export class AppComponent {
   constructor(storage: Storage) {
     storage.create();
@@ -858,7 +861,7 @@ Now you can import the `Storage` service in `AuthService` in `src/app/auth/auth.
 
 ```ts
 // Other imports...
-// TODO: import RxJS's from function, delayWhen operator and Ionic's storage provider.
+// Import RxJS's from function, delayWhen operator and Ionic's storage provider.
 import { Observable, ReplaySubject, from } from "rxjs";
 import { delayWhen, map } from "rxjs/operators";
 import { Storage } from "@ionic/storage";
