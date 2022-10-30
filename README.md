@@ -90,7 +90,7 @@ Make sure you have [Ionic][ionic] installed, and that your computer is correctly
 
 ```bash
 $> ionic -v
-6.18.1
+6.20.3
 ```
 
 > If you have an error when running the above command, this probably means that you need to install [Ionic][ionic]. To do so, execute:
@@ -1043,20 +1043,21 @@ After all, we know that we need it for most calls.
 
 This solves our problem: we want to register an interceptor that will automatically add the `Authorization` header to all requests **if the user is logged in**.
 
-To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/app/layout/trip-list/trip-list.ts`:
+To demonstrate that it works, start by adding a call to list trips in the `TripListPage` component in `src/app/layout/trip-list/trip-list.page.ts`:
 
 ```ts
 // Other imports...
 // TODO: import Angular's HTTP client.
 import { HttpClient } from "@angular/common/http";
-import { ViewDidEnter } from "@ionic/angular";
+import { ViewWillEnter } from "@ionic/angular";
 import { AuthService } from "src/app/auth/auth.service";
 
 @Component({
-  selector: "page-trip-list",
-  templateUrl: "trip-list.html",
+  selector: "app-trip-list",
+  templateUrl: "trip-list.page.html",
+  styleUrls: ['./trip-list.page.scss'],
 })
-export class TripListPage implements ViewDidEnter {
+export class TripListPage implements ViewWillEnter {
   constructor(
     // Inject the AuthService
     private auth: AuthService,
@@ -1064,7 +1065,7 @@ export class TripListPage implements ViewDidEnter {
     public http: HttpClient
   ) {}
 
-  ionViewDidEnter(): void {
+  ionViewWillEnter(): void {
     // Make an HTTP request to retrieve the trips.
     const url = "https://devmobil-travel-log-api.herokuapp.com/api/trips";
     this.http.get(url).subscribe((trips) => {
@@ -1300,9 +1301,9 @@ Since it's a TypeScript file like any other, you simply have to import and use i
 import { environment } from "src/environments/environment";
 
 // ...
-export class TripListPage {
+export class TripListPage implements ViewWillEnter {
   // ...
-  ngOnInit() {
+  ionViewWillEnter(): void {
     const url = `${environment.apiUrl}/trips`;
     this.http.get(url).subscribe((trips) => {
       console.log(`Trips loaded`, trips);
