@@ -136,6 +136,22 @@ Date:   Mon Nov 4 14:25:29 2019 +0100
 
 <a href="#top">↑ Back to top</a>
 
+### Disable Strict TypeScript Mode
+The strict option will subject your code to stricter rules in terms of static type checking. This is usually a good thing. However, for the purpose of the code written in this tutorial, we will need to disable this option. 
+
+To do so, navigate to the `tsconfig.json` file remove the following line:
+```ts
+{
+  "compilerOptions": {
+    ...
+    -> "strict": true,
+    ...
+  },
+  ...
+}
+```
+
+
 ### Serve the application locally
 
 To make sure everything was set up correctly, use the following command from the root of your project directory to serve the application locally in your browser:
@@ -893,7 +909,7 @@ To do that, use RxJS's [`delayWhen`][rxjs-delay-when] operator, which allows us 
 > This way, we only emit the `auth.user` when we are **sure** that the `auth` object has been saved in the storage.
 
 ```ts
-logIn(authRequest: AuthRequest): Observable<User> {
+logIn$(authRequest: AuthRequest): Observable<User> {
 
   const authUrl = `${API_URL}/auth`;
   return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
