@@ -41,7 +41,7 @@ This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Appli
 ## Prerequisites
 
 These instructions assume that you are using the Travel Log API based on one of the suggestions of the previous [Web-Oriented Architecture](https://github.com/MediaComem/comem-archioweb),
-and that you are familiar with the [documentation of the reference API](https://devmobil-travel-log-api.herokuapp.com).
+and that you are familiar with the [documentation of the reference API](https://comem-travel-log-api.onrender.com/).
 
 You will need to have [Node.js](https://nodejs.org) installed.
 The latest LTS (Long Term Support) version is recommended (^16.0.0 at the time of writing).
@@ -450,7 +450,7 @@ Once login/logout is implemented, you will also set up an **HTTP interceptor** t
 
 ### Check the documentation of the API's authentication resource
 
-The Travel Log API provides an [`/auth` resource](https://devmobil-travel-log-api.herokuapp.com/#api-Authentication-CreateAuthenticationToken)
+The Travel Log API provides an [`/auth` resource](https://comem-travel-log-api.onrender.com/#api-Authentication-CreateAuthenticationToken)
 on which you can make a POST request to authenticate.
 
 You need to make a call that looks like this:
@@ -616,7 +616,7 @@ export class AuthService {
 }
 ```
 
-> You need to set the value of the constant `API_URL` to your dedicated API URL. In this example, `API_URL` will have a value of "https://devmobil-travel-log-api.herokuapp.com/api"
+> You need to set the value of the constant `API_URL` to your dedicated API URL. In this example, `API_URL` will have a value of "https://comem-travel-log-api.onrender.com/api"
 
 ### Create the login screen
 
@@ -1027,7 +1027,7 @@ You should now see the logout button in the navigation bar after logging in.
 
 Now that you have login and logout functionality, and an authentication service that stores an authentication token, you can authenticate for other API calls.
 
-Looking at the API documentation, at some point you will need to [create a trip](https://devmobil-travel-log-api.herokuapp.com/#api-Trips-CreateTrip).
+Looking at the API documentation, at some point you will need to [create a trip](https://comem-travel-log-api.onrender.com/#api-Trips-CreateTrip).
 The documentation states that you must send a bearer token in the `Authorization` header, like this:
 
 ```
@@ -1083,7 +1083,7 @@ export class TripListPage implements ViewWillEnter {
 
   ionViewWillEnter(): void {
     // Make an HTTP request to retrieve the trips.
-    const url = "https://devmobil-travel-log-api.herokuapp.com/api/trips";
+    const url = "https://comem-travel-log-api.onrender.com/api/trips";
     this.http.get(url).subscribe((trips) => {
       console.log(`Trips loaded`, trips);
     });
@@ -1196,7 +1196,7 @@ Sometimes you might have to store values that should not be committed to version
 For example, in our earlier HTTP calls, the URL was **hardcoded**:
 
 ```ts
-const url = "https://devmobil-travel-log-api.herokuapp.com/api/trips";
+const url = "https://comem-travel-log-api.onrender.com/api/trips";
 this.http.get(url).subscribe((trips) => {
   // ...
 });
@@ -1253,7 +1253,7 @@ With this placeholder file, you can now (re)create the actual `src/environments/
 ```ts
 export const environment = {
   production: false,
-  apiUrl: "https://devmobil-travel-log-api.herokuapp.com/api",
+  apiUrl: "https://comem-travel-log-api.onrender.com/api",
 };
 ```
 
@@ -1263,7 +1263,7 @@ While we're at it, let's also (re)create the `environment.prod.ts` file, used fo
 export const environment = {
   production: true,
   // That's the same api Url in our case, but in real project, it would certainly be different (you don't want to develop using the same instance as the production application...)
-  apiUrl: "https://devmobil-travel-log-api.herokuapp.com/api",
+  apiUrl: "https://comem-travel-log-api.onrender.com/api",
 };
 ```
 
@@ -1361,7 +1361,7 @@ export class AuthService {
 [lazy-loading]: https://angular.io/guide/lazy-loading-ngmodules
 [rxjs-delay-when]: http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#instance-method-delayWhen
 [sass]: http://sass-lang.com
-[travel-log-api]: https://devmobil-travel-log-api.herokuapp.com
+[travel-log-api]: https://comem-travel-log-api.onrender.com
 [storage]: https://github.com/ionic-team/ionic-storage
 [sqlite]: https://sqlite.org
 [indexed-db]: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
