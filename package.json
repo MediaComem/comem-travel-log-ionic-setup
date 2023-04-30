@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/MediaComem/comem-citizen-engagement-ionic-setup#readme",
   "dependencies": {
-    "doctoc": "^1.4.0"
+    "doctoc": "^2.2.1"
   }
 }
