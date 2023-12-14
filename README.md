@@ -3,7 +3,7 @@
 <a name="top"></a>
 
 This repository contains instructions to build a skeleton application that can serve as a starting point to develop the Travel Log mobile application.
-The completed skeleton app is available [here](https://github.com/MediaComem/comem-travel-log-ionic-starter).
+The completed skeleton app is available [here](https://github.com/Tazaf/comem-travel-log-ionic-starter).
 
 This tutorial is used in the [COMEM+](http://www.heig-vd.ch/comem) [Mobile Applications course](https://github.com/MediaComem/comem-appmob) taught at [HEIG-VD](http://www.heig-vd.ch).
 
@@ -138,23 +138,6 @@ Date:   Mon Nov 4 14:25:29 2019 +0100
 ```
 
 <a href="#top">↑ Back to top</a>
-
-### Disable Strict TypeScript Mode
-
-The strict option will subject your code to stricter rules in terms of static type checking. This is usually a good thing. However, for the purpose of the code written in this tutorial, we will need to disable this option.
-
-To do so, navigate to the `tsconfig.json` file remove the following line:
-
-```ts
-{
-  "compilerOptions": {
-    ...
-    -> "strict": true,
-    ...
-  },
-  ...
-}
-```
 
 ### Serve the application locally
 
