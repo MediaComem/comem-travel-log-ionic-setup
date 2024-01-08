@@ -923,7 +923,7 @@ logIn$(authRequest: AuthRequest): Observable<User> {
   const authUrl = `${API_URL}/auth`;
   return this.http.post<AuthResponse>(authUrl, authRequest).pipe(
     // Delay the observable stream while persisting the authentication response.
-    delayWhen((auth) => this.saveAuth$(auth)),
+    delayWhen((auth) => this.#saveAuth$(auth)),
     map(auth => {
       this.#auth$.next(auth);
       console.log(`User ${auth.user.name} logged in`);
