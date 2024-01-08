@@ -190,7 +190,7 @@ Then, use the `ionic generate` command to create the `Layout` page.
 $> ionic generate page Layout
 ```
 
-Update the `app-routing.module.ts` file to add the routes leading to this new `Layout` page:
+Update the `app.route.ts` file to add the routes leading to this new `Layout` page:
 
 ```ts
 import { Routes } from "@angular/router";
