@@ -318,28 +318,26 @@ const routes: Routes = [
     component: LayoutPage,
     children: [
       {
-        // Route that loads the CreateTrip module
+        // Route that loads the CreateTripPage component
         path: "create-trip",
-        loadChildren: () =>
-          import("./create-trip/create-trip.module").then(
-            (m) => m.CreateTripPageModule
+        loadComponent: () =>
+          import("./layout/create-trip/create-trip.page").then(
+            (m) => m.CreateTripPage
           ),
       },
       {
-        // Route that loads the PlacesMap module
+        // Route that loads the PlacesMapPage component's
         path: "places-map",
-        loadChildren: () =>
-          import("./places-map/places-map.module").then(
-            (m) => m.PlacesMapPageModule
+        loadComponent: () =>
+          import("./layout/places-map/places-map.page").then(
+            (m) => m.PlacesMapPage
           ),
       },
       {
-        // Route that loads the TripList module
+        // Route that loads the TripListPage component
         path: "trip-list",
-        loadChildren: () =>
-          import("./trip-list/trip-list.module").then(
-            (m) => m.TripListPageModule
-          ),
+        loadComponent: () =>
+          import("./layout/trip-list/trip-list.page").then((m) => m.TripListPage),
       },
     ],
   },
