@@ -956,7 +956,7 @@ Finally, also update the `AuthService`'s `logOut()` method to remove the stored 
 
 ```ts
 logOut() {
-  this.#auth$.next(null);
+  this.#auth$.next(undefined);
   // Remove the stored authentication from storage when logging out.
   this.storage.remove('auth');
   console.log('User logged out');
